@@ -1,0 +1,1933 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sunn Square CRM</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#fff; --ink:#15181d; --muted:#6b7280; --line:#e4e7ec;
+    --brand:#f59e0b; --brand-dark:#b45309; --ok:#15803d; --bad:#b91c1c;
+    --radius:12px; color-scheme: light;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Devanagari",sans-serif;
+    font-size:15px;line-height:1.5;
+    padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+  [hidden]{display:none!important}
+  button{font:inherit;cursor:pointer}
+  input,select,textarea{font:inherit;width:100%;padding:10px 12px;border:1px solid var(--line);
+    border-radius:10px;background:#fff;color:var(--ink)}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--brand);outline-offset:1px}
+  label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+  .btn{background:var(--brand);color:#1a1205;border:0;border-radius:10px;padding:11px 16px;font-weight:600}
+  .btn:hover{background:#e08c06}
+  .btn-ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .wrap{max-width:900px;margin:0 auto;padding:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+
+  header{background:#15181d;color:#fff;position:sticky;top:env(safe-area-inset-top,0px);z-index:20}
+  .hd{max-width:900px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .hd h1{font-size:16px;margin:0;font-weight:700;flex:1;min-width:110px}
+  .hd .sub{font-size:12px;color:#9ca3af;font-weight:400}
+  .linkbtn{background:none;border:0;color:#d1d5db;font-size:13px;text-decoration:underline;padding:4px}
+  .tabs{max-width:900px;margin:0 auto;padding:0 16px;display:flex;gap:4px}
+  .tab{background:none;border:0;color:#9ca3af;padding:10px 14px;font-size:14px;font-weight:600;
+    border-bottom:3px solid transparent;white-space:nowrap}
+  .tab[aria-selected="true"]{color:#fff;border-bottom-color:var(--brand)}
+
+  .tools{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+  .tools input{flex:2;min-width:160px}
+  .tools select{flex:1;min-width:140px}
+  .count{font-size:13px;color:var(--muted);margin:4px 0 10px}
+
+  .lead{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+  .lead.urgent{border-left:4px solid var(--bad)}
+  .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+  .nm{font-weight:700;font-size:16px}
+  .meta{font-size:13px;color:var(--muted);margin-top:2px}
+  a.tel{color:var(--brand-dark);font-weight:600;text-decoration:none}
+  .row2{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+  .chip{display:inline-block;font-size:12px;padding:3px 9px;border-radius:999px;background:#f1f3f5;color:#374151;white-space:nowrap}
+  .chip.hot{background:#fee2e2;color:#991b1b}
+  .chip.big{background:#fef3c7;color:#92400e;font-weight:600}
+  .chip.days{background:#fee2e2;color:#991b1b;font-weight:700}
+  .chip.money{background:#dcfce7;color:#14532d;font-weight:600}
+  .chip.nc{background:#e5e7eb;color:#4b5563}
+  .lead.nc{opacity:.62}
+  .chk{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);
+       background:#f8f9fa;border:1px solid #e5e7eb;border-radius:10px;padding:9px 12px;cursor:pointer}
+  .chk input{width:18px;height:18px;margin:0;accent-color:#f59e0b}
+  label.chk.nc{margin:0 0 12px;color:#92400e;background:#fffbeb;border-color:#fde68a}
+  .lead select{width:auto;flex:1;min-width:150px;padding:7px 10px;font-size:13px}
+  .chip.mine{background:#dbeafe;color:#1e3a8a;font-weight:600}
+  .bar{position:sticky;top:96px;z-index:15;background:#15181d;color:#fff;border-radius:var(--radius);
+       padding:10px 12px;margin-bottom:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .bar span{font-weight:700;font-size:14px;white-space:nowrap}
+  .bar select,.bar input{width:auto;flex:1;min-width:130px;padding:8px 10px;font-size:14px}
+  .bar button{padding:8px 14px;font-size:14px;white-space:nowrap}
+  .pick{width:20px;height:20px;margin:0 0 0 2px;accent-color:#f59e0b;flex:0 0 auto}
+  .lead.picked{border-color:var(--brand);box-shadow:0 0 0 2px #fde68a}
+  .nmbtn{background:none;border:0;padding:0;font:inherit;font-weight:700;font-size:16px;
+         color:var(--ink);text-align:left;text-decoration:underline;text-decoration-color:#d1d5db;
+         text-underline-offset:3px}
+  .nmbtn:hover{text-decoration-color:var(--brand)}
+
+  .ovl .card.big{max-width:660px}
+  .phead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:12px}
+  .phead h2{margin:0}
+  .pacts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+  .act{flex:1;min-width:130px;text-align:center;text-decoration:none;display:inline-block;
+       padding:11px 12px;font-weight:600;font-size:14px}
+  a.act{color:#1a1205}
+  a.btn-ghost.act{color:var(--ink)}
+  .pbox{background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px;margin:12px 0;font-size:14px}
+  .pbox b{color:#9a3412}
+  h3.ph{font-size:15px;margin:22px 0 2px;padding-top:14px;border-top:1px solid var(--line)}
+  .sub2{font-weight:400;font-size:13px;color:var(--muted)}
+  .callrow{border:1px solid var(--line);border-left:4px solid #d1d5db;border-radius:10px;
+           padding:10px 12px;margin-top:8px;font-size:14px}
+  .callrow.good{border-left-color:var(--ok)}
+  .callrow.bad{border-left-color:#f59e0b}
+  .callrow .when{font-size:12px;color:var(--muted)}
+  .callrow .nt{margin-top:4px;color:#374151}
+  .btn.done{background:var(--ok);color:#fff;width:100%;margin-top:14px}
+  .btn.done:hover{background:#166534}
+  .pbox.ok{background:#f0fdf4;border-color:#bbf7d0}
+  .pbox.ok b{color:#166534}
+  .lead.fin{opacity:.7;border-left:4px solid var(--ok)}
+  .chip.fin{background:#dcfce7;color:#14532d;font-weight:600}
+  .chip.slept{background:#fef3c7;color:#92400e;font-weight:700}
+  .chip.slept.bad{background:#fee2e2;color:#991b1b}
+  .lead.slept{border-left:4px solid #f59e0b}
+  .alarm{display:block;width:100%;text-align:left;background:#fffbeb;border:1px solid #fcd34d;
+    border-left:5px solid #f59e0b;border-radius:var(--radius);padding:12px 14px;margin:0 0 12px;
+    font-size:15px;font-weight:600;color:#92400e}
+  .alarm:hover{background:#fef3c7}
+  .alarm.on{background:#15181d;border-color:#15181d;color:#fff}
+  .alarm.hot{background:#fef2f2;border-color:#fca5a5;border-left-color:#dc2626;color:#991b1b}
+  .alarm.hot:hover{background:#fee2e2}
+  .alarm small{display:block;font-weight:400;font-size:13px;margin-top:3px;opacity:.85}
+  h3.ph2{font-size:14px;margin:20px 0 2px;color:var(--brand-dark);
+         border-bottom:2px solid #fde68a;padding-bottom:4px}
+  .btn.mini{padding:5px 11px;font-size:13px;float:right;margin-top:-2px}
+  .visitrow{border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:10px;
+            padding:10px 12px;margin-top:8px;font-size:14px;cursor:pointer;background:#fff}
+  .visitrow:hover{background:#fffbeb}
+  .visitrow .when{font-size:12px;color:var(--muted);margin-top:2px}
+  .ptiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:8px}
+  .ptile{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#f8fafc}
+  .ptile .ph{width:100%;height:92px;display:flex;align-items:center;justify-content:center;
+    background:#eef2f7;color:var(--muted);font-size:13px;cursor:pointer;border:0;padding:0}
+  .ptile img{width:100%;height:92px;object-fit:cover;display:block}
+  .ptile .pk{font-size:12px;padding:5px 7px;color:var(--muted);display:flex;
+    justify-content:space-between;align-items:center;gap:4px}
+  .ptile .pk button{border:0;background:none;color:#b91c1c;font-size:12px;cursor:pointer;padding:0}
+  .visitrow .kv{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap}
+
+  .wcard{background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+         padding:14px;margin-bottom:12px;border-left:5px solid var(--brand)}
+  .wcard.zero{border-left-color:var(--bad);background:#fffafa}
+  .wcard h4{margin:0 0 2px;font-size:17px}
+  .wcard .who{font-size:12px;color:var(--muted);margin-bottom:10px}
+  .nums{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+  @media(max-width:520px){.nums{grid-template-columns:repeat(3,1fr)}}
+  .num{background:#f8f9fa;border-radius:10px;padding:9px 10px;text-align:center}
+  .num .n{font-size:21px;font-weight:700;line-height:1.1}
+  .num .t{font-size:11px;color:var(--muted);margin-top:3px}
+  .num.good .n{color:var(--ok)} .num.warn .n{color:#b45309} .num.bad .n{color:var(--bad)}
+  .untouched{margin-top:12px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:10px 12px}
+  .untouched b{color:#9a3412;font-size:13px}
+  .untouched .names{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap}
+  .untouched button{background:#fff;border:1px solid #fdba74;border-radius:999px;
+                    padding:4px 10px;font-size:13px;color:#9a3412}
+
+  .strip{background:#15181d;color:#fff;border-radius:var(--radius);padding:14px 16px;margin-bottom:14px;
+    display:flex;gap:20px;flex-wrap:wrap}
+  .strip div{min-width:120px}
+  .strip .k{font-size:12px;color:#9ca3af}
+  .strip .v{font-size:20px;font-weight:700;margin-top:2px}
+
+  .empty{text-align:center;color:var(--muted);padding:40px 16px}
+  .msg{padding:10px 12px;border-radius:10px;font-size:14px;margin:10px 0}
+  .msg.err{background:#fee2e2;color:#991b1b}
+  .msg.ok{background:#dcfce7;color:#14532d}
+
+  .ovl{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-start;
+    justify-content:center;padding:16px;overflow:auto;z-index:50}
+  .ovl .card{width:100%;max-width:520px;margin:24px 0}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+  @media(max-width:520px){.grid2{grid-template-columns:1fr}}
+  .modal-actions{display:flex;gap:8px;margin-top:18px}
+  .modal-actions button{flex:1}
+  h2{font-size:18px;margin:0 0 4px}
+  .hint{font-size:13px;color:var(--muted);margin:0 0 12px}
+</style>
+</head>
+
+<div id="setup" class="wrap" hidden>
+  <div class="card">
+    <h2>पहली बार — जोड़ना है</h2>
+    <p class="hint">यह सिर्फ़ एक बार। आपके browser में सहेज लिया जाएगा।</p>
+    <label>Supabase Project URL</label><input id="s_url" spellcheck="false">
+    <label>Publishable key</label><input id="s_key" spellcheck="false">
+    <div id="s_msg"></div>
+    <div class="modal-actions"><button class="btn" id="s_save">सहेजिए</button></div>
+  </div>
+</div>
+
+<div id="login" class="wrap" hidden>
+  <div class="card">
+    <h2>Sunn Square CRM</h2>
+    <p class="hint">अपने email और password से अंदर आइए।</p>
+    <label>Email</label><input id="l_email" type="email" autocomplete="username">
+    <label>Password</label><input id="l_pass" type="password" autocomplete="current-password">
+    <div id="l_msg"></div>
+    <div class="modal-actions"><button class="btn" id="l_go">अंदर जाइए</button></div>
+    <p class="hint" style="margin-top:14px">
+      <button class="linkbtn" style="color:var(--muted)" id="l_reset">जोड़ने की सेटिंग बदलिए</button>
+    </p>
+  </div>
+</div>
+
+<div id="app" hidden>
+  <header>
+    <div class="hd">
+      <h1><span id="h1t">Sunn Square CRM</span> <span class="sub" id="who"></span></h1>
+      <button class="btn" id="b_new">+ नई lead</button>
+      <button class="linkbtn" id="b_out">बाहर</button>
+    </div>
+    <div class="tabs">
+      <button class="tab" id="t_leads" aria-selected="true">सारी leads</button>
+      <button class="tab" id="t_stuck" aria-selected="false">🔴 अटकी applications</button>
+      <button class="tab" id="t_live" aria-selected="false">⚡ चालू सिस्टम</button>
+      <button class="tab" id="t_work" aria-selected="false">📊 काम का हिसाब</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <!-- LEADS -->
+    <div id="v_leads">
+      <div class="tools">
+        <input id="q" placeholder="नाम, phone या गाँव से ढूँढिए…">
+        <select id="f_stage"></select>
+        <select id="f_bill">
+          <option value="">बिल — सब</option>
+          <option>₹25,000+</option><option>₹12,000–25,000</option><option>₹6,000–12,000</option>
+          <option>₹3,000–6,000</option><option>₹1,000–3,000</option>
+        </select>
+        <select id="f_int">
+          <option value="">दिलचस्पी — सब</option>
+          <option value="hot">🔥 गरम</option>
+          <option value="warm">🙂 ठीक-ठाक</option>
+          <option value="cold">❄️ ठंडा</option>
+        </select>
+        <select id="f_assign" hidden></select>
+        <label class="chk"><input type="checkbox" id="f_today"> सिर्फ़ आज वाली</label>
+        <label class="chk"><input type="checkbox" id="f_nodate"> 📅 बिना अगली तारीख़</label>
+        <label class="chk" id="w_stale"><input type="checkbox" id="f_stale"> 🕐 सिर्फ़ भूली हुई</label>
+        <label class="chk" id="w_shownc"><input type="checkbox" id="f_show_nc"> अपने / test वाले भी दिखाइए</label>
+      </div>
+      <button class="alarm" id="qbar" hidden></button>
+      <button class="alarm hot" id="hotbar" hidden></button>
+      <button class="alarm" id="alarmbar" hidden></button>
+      <div class="count" id="count"></div>
+      <div class="bar" id="allbar" hidden>
+        <button class="btn-ghost btn" id="a_all">☑️ सब चुन लीजिए</button>
+      </div>
+      <div class="bar" id="selbar" hidden>
+        <span id="selcount"></span>
+        <select id="a_who"></select>
+        <input id="a_date" type="date">
+        <select id="a_rate" title="रोज़ कितनी calls">
+          <option value="20" selected>रोज़ 20</option>
+          <option value="15">रोज़ 15</option>
+          <option value="30">रोज़ 30</option>
+          <option value="0">सब एक ही दिन</option>
+        </select>
+        <button class="btn" id="a_go">सौंप दीजिए</button>
+        <button class="btn-ghost btn" id="a_clear">छोड़िए</button>
+      </div>
+      <div class="hint" id="a_plan" hidden></div>
+      <div id="list"></div>
+    </div>
+
+    <!-- STUCK -->
+    <div id="v_stuck" hidden>
+      <div class="strip" id="strip"></div>
+      <div class="tools">
+        <input id="q2" placeholder="नाम, phone या application number…">
+        <select id="f_pstatus">
+          <option value="">कहाँ अटका — सब</option>
+          <option>Agreement upload pending</option>
+          <option>Installation pending</option>
+          <option>Inspection pending</option>
+          <option>Subsidy released</option>
+          <option>Commissioned</option>
+        </select>
+        <label class="chk"><input type="checkbox" id="f_fin"> पूरी हो चुकीं भी दिखाइए</label>
+      </div>
+      <div class="count" id="count2"></div>
+      <div id="list2"></div>
+    </div>
+
+    <!-- चालू सिस्टम -->
+    <div id="v_live" hidden>
+      <div class="strip" id="strip3"></div>
+      <div class="tools">
+        <input id="q3" placeholder="नाम, phone या गाँव…">
+        <select id="f_ptype"></select>
+        <select id="f_amc">
+          <option value="">AMC — सब</option>
+          <option value="due">⏰ AMC का समय आ गया</option>
+          <option value="soon">अगले 30 दिन में</option>
+          <option value="none">AMC की तारीख़ नहीं डली</option>
+        </select>
+      </div>
+      <div class="count" id="count3"></div>
+      <div id="list3"></div>
+    </div>
+
+    <!-- काम का हिसाब -->
+    <div id="v_work" hidden>
+      <div class="tools">
+        <select id="f_when">
+          <option value="0">आज</option>
+          <option value="1">कल</option>
+          <option value="7" selected>पिछले 7 दिन</option>
+          <option value="30">पिछले 30 दिन</option>
+        </select>
+        <button class="btn-ghost btn" id="w_refresh" style="flex:1;min-width:130px">↻ ताज़ा कीजिए</button>
+      </div>
+      <div class="strip" id="strip4"></div>
+      <div id="list4"></div>
+    </div>
+
+    <div id="msg"></div>
+  </div>
+</div>
+
+<div id="panna" class="ovl" hidden>
+  <div class="card big">
+    <div class="phead">
+      <div>
+        <h2 id="p_name">—</h2>
+        <div class="meta" id="p_sub"></div>
+      </div>
+      <button class="btn-ghost btn" id="p_close">✕ बंद</button>
+    </div>
+
+    <div class="pacts">
+      <a class="btn act" id="p_tel" href="#">📞 फ़ोन लगाइए</a>
+      <a class="btn-ghost btn act" id="p_wa" href="#" target="_blank" rel="noopener">WhatsApp</a>
+      <button class="btn-ghost btn act" id="p_call">📞 call चढ़ाइए</button>
+    </div>
+
+    <div id="p_portal" class="pbox" hidden></div>
+
+    <div id="p_pedit" hidden>
+      <h3 class="ph">PM Surya Ghar application</h3>
+      <div class="grid2">
+        <div><label>Application number</label><input id="p_f_app"></div>
+        <div><label>कब apply हुई</label><input id="p_f_applied" type="date"></div>
+      </div>
+      <div class="grid2">
+        <div><label>System kW</label><input id="p_f_skw" inputmode="decimal"></div>
+        <div><label>कहाँ अटका है</label><select id="p_f_pstatus"></select></div>
+      </div>
+      <div class="grid2">
+        <div><label>Subsidy (₹)</label><input id="p_f_sub" inputmode="numeric"></div>
+        <div><label>ग्राहक का बिल नुक़सान (₹)</label><input id="p_f_loss" inputmode="numeric"></div>
+      </div>
+      <button class="btn done" id="p_done">✅ पूरा हो गया — subsidy आ गई, सूची से हटाइए</button>
+      <p class="hint" style="margin:8px 0 0">
+        यह बटन status को "चालू हो गया" कर देता है और अटकी applications की सूची से हटा देता है।
+        जानकारी मिटती नहीं — "पूरी हो चुकीं" वाला निशान लगाकर वापस देख सकते हैं।</p>
+    </div>
+
+    <div id="p_live" class="pbox ok" hidden></div>
+
+    <h3 class="ph">लगा हुआ सिस्टम</h3>
+    <div class="grid2">
+      <div><label>किस तरह का काम</label><select id="p_f_ptype"></select></div>
+      <div><label>कब चालू हुआ</label><input id="p_f_comm" type="date"></div>
+    </div>
+    <div class="grid2">
+      <div><label>कितने kW लगे</label><input id="p_f_ikw" inputmode="decimal"></div>
+      <div><label>अगली AMC कब</label><input id="p_f_amc" type="date"></div>
+    </div>
+    <label>सामान का ब्योरा (inverter, panel, battery…)</label>
+    <textarea id="p_f_snote" rows="2" placeholder="जैसे: 5kW Growatt inverter, 10×545W Waaree panel"></textarea>
+    <button class="btn done" id="p_live_btn">⚡ यह सिस्टम चालू हो गया — आज की तारीख़ डालिए</button>
+
+    <h3 class="ph">जानकारी</h3>
+    <div class="grid2">
+      <div><label>नाम</label><input id="p_f_name"></div>
+      <div><label>Phone</label><input id="p_f_phone" inputmode="tel"></div>
+    </div>
+    <div class="grid2">
+      <div><label>गाँव / मोहल्ला</label><input id="p_f_village"></div>
+      <div><label>ज़िला</label><input id="p_f_district"></div>
+    </div>
+    <label>पूरा पता</label><textarea id="p_f_addr" rows="2"></textarea>
+    <div class="grid2">
+      <div><label>महीने का बिल (₹)</label><input id="p_f_bill" inputmode="numeric"></div>
+      <div><label>बिल का bracket</label>
+        <select id="p_f_band"><option value="">—</option>
+          <option>₹1,000–3,000</option><option>₹3,000–6,000</option><option>₹6,000–12,000</option>
+          <option>₹12,000–25,000</option><option>₹25,000+</option></select></div>
+    </div>
+    <div class="grid2">
+      <div><label>कहाँ लगेगा</label><select id="p_f_use"></select></div>
+      <div><label>कितने kW</label><input id="p_f_kw" inputmode="decimal"></div>
+    </div>
+    <div class="grid2">
+      <div><label>दिलचस्पी</label><select id="p_f_interest"></select></div>
+      <div><label>अगला काम कब</label><input id="p_f_next" type="date"></div>
+    </div>
+    <label>Stage</label><select id="p_f_stage"></select>
+    <label>Note</label><textarea id="p_f_notes" rows="3"></textarea>
+    <div id="p_msg"></div>
+    <div class="modal-actions">
+      <button class="btn" id="p_save">बदलाव सहेजिए</button>
+    </div>
+
+    <h3 class="ph">🏠 Site visit <span id="p_vcount" class="sub2"></span>
+      <button class="btn mini" id="p_newvisit">+ नया site visit</button></h3>
+    <div id="p_visits"><div class="empty">ला रहे हैं…</div></div>
+
+    <h3 class="ph">Call का इतिहास <span id="p_ccount" class="sub2"></span></h3>
+    <div id="p_calls"><div class="empty">ला रहे हैं…</div></div>
+  </div>
+</div>
+
+<div id="visitbox" class="ovl" hidden>
+  <div class="card big">
+    <div class="phead">
+      <div><h2 id="v_title">Site visit</h2>
+        <p class="hint" style="margin:0">जो भरा जाए भर दीजिए — बाक़ी बाद में भी भर सकते हैं।</p></div>
+      <button class="btn-ghost btn" id="v_close">✕ बंद</button>
+    </div>
+
+    <h3 class="ph2">कब और कौन</h3>
+    <div class="grid2">
+      <div><label>Visit की तारीख़ *</label><input id="v_date" type="date"></div>
+      <div><label>किसने की</label><input id="v_by"></div>
+    </div>
+    <div class="grid2">
+      <div><label>काम का चरण</label><select id="v_phase"></select></div>
+      <div><label>अंदाज़न कितने kW</label><input id="v_ekw" inputmode="decimal"></div>
+    </div>
+
+    <h3 class="ph2">पता और पहुँच</h3>
+    <label>पूरा पता</label><textarea id="v_addr" rows="2"></textarea>
+    <div class="grid2">
+      <div><label>पहचान की निशानी</label><input id="v_landmark" placeholder="मंदिर के पास…"></div>
+      <div><label>गाड़ी अंदर तक जाती है?</label>
+        <select id="v_vehicle"><option value="">—</option><option value="1">हाँ</option><option value="0">नहीं</option></select></div>
+    </div>
+    <label>पहुँच के बारे में note</label><input id="v_access" placeholder="गली सँकरी है, क्रेन नहीं जाएगी…">
+    <div class="grid2">
+      <div><label>GPS अक्षांश (lat)</label><input id="v_lat" inputmode="decimal"></div>
+      <div><label>GPS देशांतर (lng)</label><input id="v_lng" inputmode="decimal"></div>
+    </div>
+    <button class="btn-ghost btn" id="v_gps" style="width:100%">📍 अभी की जगह भर दीजिए</button>
+
+    <h3 class="ph2">छत</h3>
+    <div class="grid2">
+      <div><label>छत किस तरह की</label><select id="v_roof"></select></div>
+      <div><label>कितनी मंज़िल</label><input id="v_floors" inputmode="numeric"></div>
+    </div>
+    <div class="grid2">
+      <div><label>ऊँचाई (फ़ुट)</label><input id="v_height" inputmode="decimal"></div>
+      <div><label>छत की लंबाई (फ़ुट)</label><input id="v_rlen" inputmode="decimal"></div>
+    </div>
+    <div class="grid2">
+      <div><label>छत की चौड़ाई (फ़ुट)</label><input id="v_rwid" inputmode="decimal"></div>
+      <div><label>छाया पड़ती है?</label>
+        <select id="v_shadow"><option value="">—</option><option value="1">हाँ</option><option value="0">नहीं</option></select></div>
+    </div>
+    <label>छाया कहाँ से — note</label><input id="v_shnote" placeholder="पड़ोस का पेड़, पानी की टंकी…">
+
+    <h3 class="ph2">सामान का अंदाज़ा</h3>
+    <div class="grid2">
+      <div><label>GI pipe (मीटर)</label><input id="v_gi" inputmode="decimal"></div>
+      <div><label>Structure की ऊँचाई (फ़ुट)</label><input id="v_sheight" inputmode="decimal"></div>
+    </div>
+    <div class="grid2">
+      <div><label>Elevated structure चाहिए?</label>
+        <select id="v_elev"><option value="">—</option><option value="1">हाँ</option><option value="0">नहीं</option></select></div>
+      <div><label>Earthing कितनी</label><input id="v_earth" inputmode="numeric"></div>
+    </div>
+    <div class="grid2">
+      <div><label>DC cable (मीटर)</label><input id="v_dc" inputmode="decimal"></div>
+      <div><label>AC cable (मीटर)</label><input id="v_ac" inputmode="decimal"></div>
+    </div>
+    <div class="grid2">
+      <div><label>LA (बिजली रक्षक) चाहिए?</label>
+        <select id="v_la"><option value="">—</option><option value="1">हाँ</option><option value="0">नहीं</option></select></div>
+      <div><label>और कोई सामान</label><input id="v_extra"></div>
+    </div>
+
+    <h3 class="ph2">बिजली का connection</h3>
+    <div class="grid2">
+      <div><label>Consumer number</label><input id="v_consumer"></div>
+      <div><label>Sanctioned load (kW)</label><input id="v_load" inputmode="decimal"></div>
+    </div>
+    <div class="grid2">
+      <div><label>मीटर कहाँ लगा है</label><input id="v_meter"></div>
+      <div><label>Inverter कहाँ लगेगा</label><input id="v_inv"></div>
+    </div>
+    <label>Note</label><textarea id="v_notes" rows="3"></textarea>
+
+    <h3 class="ph2">📷 फ़ोटो</h3>
+    <div id="v_pnote" class="hint">पहले ऊपर वाली visit सहेजिए — उसके बाद फ़ोटो जोड़ सकेंगे।</div>
+    <div id="v_pbox" hidden>
+      <div class="tools">
+        <select id="v_pkind"></select>
+        <label class="btn-ghost btn" for="v_pfile" id="v_plabel"
+               style="flex:1;min-width:150px;text-align:center;cursor:pointer">📷 फ़ोटो लीजिए</label>
+        <input id="v_pfile" type="file" accept="image/*" capture="environment" multiple hidden>
+      </div>
+      <div id="v_pmsg" class="hint"></div>
+      <div id="v_plist"></div>
+    </div>
+
+    <div id="v_msg"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost btn" id="v_cancel">रहने दीजिए</button>
+      <button class="btn" id="v_save">सहेजिए</button>
+    </div>
+  </div>
+</div>
+
+<div id="callbox" class="ovl" hidden>
+  <div class="card">
+    <h2 id="c_title">Call चढ़ाइए</h2>
+    <p class="hint">तीन चीज़ें भरिए, 10 सेकंड में।</p>
+    <label class="chk nc" id="w_cnc"><input type="checkbox" id="c_nc"> यह ग्राहक ही नहीं — अपना आदमी / test / गलत entry</label>
+    <label>1. Call का नतीजा *</label><select id="c_outcome"></select>
+    <label>2. दिलचस्पी</label><select id="c_interest"></select>
+    <label>3. अगली call कब</label><input id="c_next" type="date">
+    <label>Note (ज़रूरी नहीं)</label><textarea id="c_notes" rows="2" placeholder="क्या बात हुई…"></textarea>
+    <label>किसने call की</label><input id="c_staff" placeholder="अपना नाम">
+    <div id="c_msg"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost btn" id="c_cancel">रहने दीजिए</button>
+      <button class="btn" id="c_save">सहेजिए</button>
+    </div>
+  </div>
+</div>
+
+<div id="form" class="ovl" hidden>
+  <div class="card">
+    <h2>नई lead</h2>
+    <p class="hint" id="f_hint">नाम और phone ज़रूरी हैं। बाक़ी बाद में भी भर सकते हैं।</p>
+    <label>नाम *</label><input id="f_name">
+    <label>Phone *</label><input id="f_phone" inputmode="tel" placeholder="9876543210">
+    <div class="grid2">
+      <div><label>गाँव / मोहल्ला</label><input id="f_village"></div>
+      <div><label>ज़िला</label><input id="f_district"></div>
+    </div>
+    <div class="grid2">
+      <div><label>महीने का बिल (₹)</label><input id="f_bill_amt" inputmode="numeric"></div>
+      <div><label>बिल का bracket</label>
+        <select id="f_band"><option value="">—</option>
+          <option>₹1,000–3,000</option><option>₹3,000–6,000</option><option>₹6,000–12,000</option>
+          <option>₹12,000–25,000</option><option>₹25,000+</option></select></div>
+    </div>
+    <div class="grid2">
+      <div><label>कहाँ लगेगा</label><select id="f_use"></select></div>
+      <div><label>कितने kW (अंदाज़ा)</label><input id="f_kw" inputmode="decimal"></div>
+    </div>
+    <div class="grid2">
+      <div><label>कहाँ से आई</label><select id="f_source"></select></div>
+      <div><label>दिलचस्पी</label><select id="f_interest"></select></div>
+    </div>
+    <div id="f_stgwrap"><label>Stage</label><select id="f_stg"></select></div>
+    <label>Note</label><textarea id="f_notes" rows="2"></textarea>
+    <div id="f_msg"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost btn" id="f_cancel">रहने दीजिए</button>
+      <button class="btn" id="f_save">सहेजिए</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DEF_URL = "https://ddjwszlijepejulcjmsx.supabase.co";
+const DEF_KEY = "sb_publishable_yqLA_8lAwOltbnq0rI_nyA_dhY7N2Qz";
+
+const STAGES = [
+  ["new","नई lead"],["no_answer","call नहीं लगी"],["contacted","बात हो गई"],
+  ["visit_scheduled","visit तय"],["visit_done","visit हो गया"],["quoted","quotation भेजा"],
+  ["agreement_signed","Agreement हो गया"],
+  ["advance_received","advance मिला"],
+  ["loan_applied","Loan की अर्ज़ी लगी"],["loan_approved","Loan मंज़ूर / पैसा आ गया"],
+  ["material_dispatched","सामान भेज दिया"],
+  ["in_progress","काम चालू"],["commissioned","चालू हो गया"],
+  ["after_sales","AMC / सेवा"],["lost","हाथ से गया"]];
+/* जो stage ख़त्म मान लिए जाते हैं — इन पर अलार्म नहीं बजता */
+const SETTLED = ["lost","commissioned","after_sales"];
+const SOURCES = [["facebook","Facebook"],["instagram","Instagram"],["whatsapp","WhatsApp"],
+  ["website","Website"],["walk_in","दुकान पर आए"],["referral","किसी ने भेजा"],["other","और"]];
+const USES = [["ghar","घर"],["dukan","दुकान"],["chakki_mill_factory","चक्की / मिल / factory"],
+  ["hospital_school_hotel","अस्पताल / स्कूल / होटल"],["other","और"]];
+const INTEREST = [["hot","गरम"],["warm","ठीक-ठाक"],["cold","ठंडा"]];
+const OUTCOME = [["connected","बात हो गई"],["no_answer","उठाया नहीं"],["busy","busy आया"],
+  ["switched_off","बंद था"],["rejected","काट दिया"],["wrong_number","गलत नंबर"]];
+const PSTATUS = {"Agreement upload pending":"Agreement अपलोड बाक़ी","Installation pending":"Installation बाक़ी",
+  "Inspection pending":"Inspection बाक़ी","Subsidy released":"Subsidy आ गई","Commissioned":"चालू हो गया"};
+const DONE = ["Subsidy released","Commissioned"];          // ये निपट चुकीं
+const isDone = l => DONE.includes(l.portal_status);
+const PTYPES = [["pm_surya_ghar","PM सूर्य घर (subsidy वाला)"],["residential","घर — बिना subsidy"],
+  ["commercial","व्यावसायिक — दुकान / factory / school"],["off_grid","Off-grid — battery वाला"],
+  ["water_pump","सोलर पंप"],["other","और"]];
+const PT = Object.fromEntries(PTYPES);
+const ROOFS  = [["rcc","पक्की छत (RCC)"],["tin_shed","टीन शेड"],["ground","ज़मीन पर"],["other","और"]];
+const PHASES = [["single","Single phase"],["three","Three phase"]];
+const PHOTOS = [["roof","छत"],["shadow","छाया"],["meter","मीटर"],["inverter_spot","Inverter की जगह"],
+  ["bill","बिजली का बिल"],["access","पहुँच का रास्ता"],["other","और"]];
+const isLive = l => !!l.commissioned_on;                   // सिस्टम चालू है
+
+/* ---------- "7 दिन से नहीं हिला" का हिसाब ---------- */
+const STALE_DAYS = 7;
+function sleptDays(l){                       // कितने दिन से stage नहीं बदला
+  if(!l.stage_changed_on) return null;
+  const d = dayNum(today()) - dayNum(l.stage_changed_on);
+  return isNaN(d) ? null : d;
+}
+function isStale(l, td){                     // यह lead भूली जा रही है?
+  if(l.not_a_customer) return false;
+  if(SETTLED.includes(l.stage)) return false;
+  if(l.next_action_on && l.next_action_on >= td) return false;   // आगे की तारीख़ डली है
+  const d = sleptDays(l);
+  return d !== null && d >= STALE_DAYS;
+}
+const S = Object.fromEntries(STAGES);
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const show = (...ids) => ["setup","login","app"].forEach(i => $(i).hidden = !ids.includes(i));
+const rs = n => n==null ? "" : "₹" + Number(n).toLocaleString("en-IN");
+function say(el,text,kind){ $(el).innerHTML = text ? `<div class="msg ${kind||"err"}">${esc(text)}</div>` : ""; }
+function fill(sel,pairs,blank){ $(sel).innerHTML = (blank?`<option value="">${blank}</option>`:"") +
+  pairs.map(([v,l])=>`<option value="${v}">${esc(l)}</option>`).join(""); }
+function store(k,v){ try{ v===null?localStorage.removeItem(k):localStorage.setItem(k,v); }catch(e){} }
+function load(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+
+let URL_ = load("ss_url") || DEF_URL;
+let KEY  = load("ss_key") || DEF_KEY;
+let TOK  = load("ss_tok") || "";
+let RTOK = load("ss_rtok") || "";
+let EMAIL= load("ss_email") || "";
+let LEADS = [];
+let TAB = "leads";
+let ME = { uid:"", name:"", role:"none" };   // मैं कौन हूँ
+let STAFF = [];                               // सारे staff (सिर्फ़ मालिक को)
+let PICKED = new Set();                       // चुनी हुई leads
+let SHOWN  = [];                              // अभी सूची में जो दिख रही हैं
+const isMalik = () => ME.role === "malik";
+const today  = () => new Date().toLocaleDateString("en-CA");  // YYYY-MM-DD, local
+
+async function api(path, opts = {}){
+  const r = await fetch(URL_.replace(/\/+$/,"") + path, { ...opts,
+    headers:{ apikey:KEY, Authorization:"Bearer "+(TOK||KEY),
+              "Content-Type":"application/json", ...(opts.headers||{}) }});
+  if (r.status === 401){ await refresh(); throw new Error("__retry__"); }
+  const txt = r.status === 204 ? "" : await r.text();
+  if (!r.ok) throw new Error(txt || ("गलती "+r.status));
+  if (!txt.trim()) return null;              // ख़ाली जवाब — यह भी ठीक है
+  try{ return JSON.parse(txt); }catch(e){ return null; }
+}
+async function apiRetry(p,o){ try{ return await api(p,o); }
+  catch(e){ if(e.message==="__retry__") return api(p,o); throw e; } }
+async function refresh(){
+  if(!RTOK){ logout(); throw new Error("दोबारा login कीजिए"); }
+  const r = await fetch(URL_+"/auth/v1/token?grant_type=refresh_token",{method:"POST",
+    headers:{apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify({refresh_token:RTOK})});
+  if(!r.ok){ logout(); throw new Error("दोबारा login कीजिए"); }
+  const d = await r.json(); TOK=d.access_token; RTOK=d.refresh_token;
+  store("ss_tok",TOK); store("ss_rtok",RTOK);
+}
+
+$("s_save").onclick = () => {
+  const u=$("s_url").value.trim().replace(/\/+$/,""), k=$("s_key").value.trim();
+  if(!u.startsWith("http")) return say("s_msg","URL https:// से शुरू होना चाहिए");
+  if(k.length<20) return say("s_msg","key पूरी नहीं लग रही");
+  URL_=u; KEY=k; store("ss_url",u); store("ss_key",k);
+  say("s_msg",""); show("login"); $("l_email").value=EMAIL;
+};
+$("l_reset").onclick = () => { show("setup"); $("s_url").value=URL_; $("s_key").value=KEY; };
+$("s_url").value = URL_; $("s_key").value = KEY;
+
+$("l_go").onclick = async () => {
+  const email=$("l_email").value.trim(), pass=$("l_pass").value;
+  if(!email||!pass) return say("l_msg","email और password दोनों भरिए");
+  say("l_msg",""); $("l_go").disabled=true; $("l_go").textContent="रुकिए…";
+  try{
+    const r=await fetch(URL_+"/auth/v1/token?grant_type=password",{method:"POST",
+      headers:{apikey:KEY,"Content-Type":"application/json"},
+      body:JSON.stringify({email,password:pass})});
+    const d=await r.json();
+    if(!r.ok) throw new Error(d.error_description||d.msg||"email या password गलत है");
+    TOK=d.access_token; RTOK=d.refresh_token; EMAIL=email;
+    store("ss_tok",TOK); store("ss_rtok",RTOK); store("ss_email",email);
+    $("l_pass").value=""; start();
+  }catch(e){ say("l_msg",e.message); }
+  finally{ $("l_go").disabled=false; $("l_go").textContent="अंदर जाइए"; }
+};
+function logout(){ TOK="";RTOK=""; store("ss_tok",null); store("ss_rtok",null);
+  show("login"); $("l_email").value=EMAIL; }
+$("b_out").onclick = logout;
+
+/* tabs */
+function setTab(t){
+  TAB=t;
+  ["leads","stuck","live","work"].forEach(k=>{
+    $("t_"+k).setAttribute("aria-selected", t===k);
+    $("v_"+k).hidden = t!==k;
+  });
+  $("b_new").hidden = t!=="leads";
+  redraw();
+}
+$("t_leads").onclick = () => setTab("leads");
+$("t_stuck").onclick = () => setTab("stuck");
+$("t_live").onclick  = () => setTab("live");
+$("t_work").onclick  = () => setTab("work");
+
+async function start(){
+  show("app"); $("who").textContent = EMAIL;
+  fill("f_stage",STAGES,"Stage — सब"); fill("f_stg",STAGES);
+  fill("f_source",SOURCES,"—"); fill("f_use",USES,"—"); fill("f_interest",INTEREST,"—");
+  fill("c_outcome",OUTCOME); fill("c_interest",INTEREST,"— वही रहने दीजिए —");
+  fill("v_pkind",PHOTOS);
+  fill("p_f_use",USES,"—"); fill("p_f_interest",INTEREST,"—"); fill("p_f_stage",STAGES);
+  fill("p_f_pstatus", Object.entries(PSTATUS), "—");
+  fill("v_roof", ROOFS, "—"); fill("v_phase", PHASES, "—");
+  fill("p_f_ptype", PTYPES, "— चुनिए —"); fill("f_ptype", PTYPES, "किस तरह का — सब");
+  qBar();
+  await whoAmI();
+  await loadLeads();
+  qBhejo(false);          // पिछली बार की रुकी हुई calls चुपचाप भेज दीजिए
+}
+
+/* token के अंदर से अपनी पहचान निकालिए */
+function myUid(){
+  try{
+    const p = JSON.parse(decodeURIComponent(escape(atob(
+      TOK.split(".")[1].replace(/-/g,"+").replace(/_/g,"/")))));
+    return p.sub || "";
+  }catch(e){ return ""; }
+}
+
+/* मैं कौन हूँ — मालिक या staff */
+async function whoAmI(){
+  ME = { uid: myUid(), name:"", role:"none" }; STAFF = [];
+  try{
+    const rows = await apiRetry("/rest/v1/crm_users?select=user_id,name,role") || [];
+    const self = rows.find(r => r.user_id === ME.uid);
+    if(self){ ME.name = self.name; ME.role = self.role; }
+    STAFF = rows.filter(r => r.role === "staff" && r.user_id !== ME.uid);
+  }catch(e){ /* table अभी बनी ही नहीं — पुराने तरीक़े से चलने दीजिए */
+    ME.role = "malik"; ME.name = "";
+  }
+
+  const staffMode = ME.role === "staff";
+  $("who").textContent = ME.name ? `— ${ME.name}` : EMAIL;
+  $("b_new").hidden   = false;          // staff भी नई lead जोड़ सकता है
+  $("f_stgwrap").hidden = staffMode;    // …पर stage नहीं चुनता, "नई lead" से शुरू होगी
+  if(staffMode) $("f_hint").textContent =
+    "नाम, phone और “कहाँ से आई” ज़रूरी हैं। यह lead अपने-आप आपके नाम हो जाएगी।";
+  $("t_stuck").hidden = staffMode;
+  $("t_work").hidden  = staffMode;   // हिसाब सिर्फ़ मालिक देखें
+  $("w_shownc").hidden= staffMode;
+  $("w_cnc").hidden   = staffMode;
+  $("f_assign").hidden= !isMalik();
+
+  if(staffMode){ $("f_today").checked = true; $("h1t").textContent = "आज की calls"; }
+  if(isMalik()){
+    fill("f_assign", [["__none__","किसी को नहीं सौंपी"], ...STAFF.map(s=>[s.user_id,s.name])], "किसको सौंपा — सब");
+    fill("a_who", STAFF.map(s=>[s.user_id,s.name]), STAFF.length?null:"— कोई staff दर्ज नहीं —");
+    $("a_date").value = today();
+  }
+  if(ME.role === "none")
+    say("msg","आपका नाम crm_users में दर्ज नहीं है — इसीलिए कुछ नहीं दिख रहा। staff-login वाली SQL चलाइए।");
+}
+/* सूची के लिए सिर्फ़ ये खाने — notes और पूरा पता पन्ना खुलने पर आते हैं।
+   इससे हर बार उतरने वाला data लगभग आधा रह जाता है। */
+const LIST_COLS = ["id","name","phone","stage","bill_band","bill_bracket","village","district",
+  "interest","kw_required","next_action_on","assigned_uid","not_a_customer","stage_changed_on",
+  "portal_app_no","portal_status","days_stuck","subsidy_eligible","bill_lost","applied_on",
+  "system_kw","project_type","commissioned_on","installed_kw","amc_due_on","system_note",
+  "created_by","created_on"].join(",");
+
+function cacheSave(){
+  try{ store("ss_cache", JSON.stringify({ t: Date.now(), rows: LEADS })); }catch(e){}
+}
+function cacheLoad(){
+  try{
+    const c = JSON.parse(load("ss_cache") || "null");
+    if(c && Array.isArray(c.rows) && c.rows.length) return c;
+  }catch(e){}
+  return null;
+}
+
+async function loadLeads(){
+  say("msg","");
+  // 1. पहले फ़ोन में सहेजी हुई सूची तुरंत दिखा दीजिए — screen ख़ाली न रहे
+  const c = cacheLoad();
+  if(c && !LEADS.length){
+    LEADS = c.rows;
+    $("t_stuck").textContent =
+      `🔴 अटकी applications (${LEADS.filter(l=>l.portal_app_no && !isDone(l)).length})`;
+    setTab(TAB);
+    say("msg", "पिछली बार की सूची दिख रही है — नई ला रहे हैं…", "ok");
+  } else if(!LEADS.length){
+    $("list").innerHTML = `<div class="empty">ला रहे हैं…</div>`;
+  }
+  // 2. अब ताज़ा सूची मँगाइए
+  try{
+    LEADS = await apiRetry(`/rest/v1/leads?select=${LIST_COLS}&order=created_at.desc&limit=1000`);
+    cacheSave();
+    const n = LEADS.filter(l=>l.portal_app_no && !isDone(l)).length;
+    $("t_stuck").textContent = `🔴 अटकी applications (${n})`;
+    setTab(TAB); say("msg","");
+  }catch(e){
+    if(c) say("msg", `नेटवर्क नहीं मिला — ${new Date(c.t).toLocaleString("en-IN")} वाली सूची दिख रही है। `
+      + `नई lead या बदलाव अभी मत कीजिए।`);
+    else { $("list").innerHTML=""; say("msg","Leads नहीं आ सकीं — "+e.message); }
+  }
+}
+
+function render(){
+  const q=$("q").value.trim().toLowerCase(), st=$("f_stage").value, bb=$("f_bill").value;
+  const showNC = $("f_show_nc").checked, onlyToday = $("f_today").checked;
+  const onlyStale = $("f_stale").checked;
+  const itr = $("f_int").value, noDate = $("f_nodate").checked;
+  const asg = isMalik() ? $("f_assign").value : "";
+  const td = today();
+
+  // 🕐 भूली हुई leads का अलार्म
+  const stale = LEADS.filter(l => isStale(l, td));
+  if(stale.length){
+    const oldest = Math.max(...stale.map(sleptDays));
+    $("alarmbar").hidden = false;
+    $("alarmbar").classList.toggle("on", onlyStale);
+    $("alarmbar").innerHTML = onlyStale
+      ? `✕ भूली हुई leads दिख रही हैं — सब वापस दिखाइए
+         <small>${stale.length} leads · सबसे पुरानी ${oldest} दिन से नहीं हिली</small>`
+      : `🕐 ${stale.length} leads ${STALE_DAYS} दिन से नहीं हिलीं — देखिए
+         <small>सबसे पुरानी ${oldest} दिन से · न stage बदला, न अगली तारीख़ डली</small>`;
+  } else {
+    $("alarmbar").hidden = true;
+    if(onlyStale){ $("f_stale").checked = false; }
+  }
+
+  // 🔥 गरम leads जिन पर अगली तारीख़ नहीं — ये सबसे पहले हाथ से निकलती हैं
+  const hotOpen = LEADS.filter(l => !l.not_a_customer && l.interest === "hot"
+    && !l.next_action_on && !SETTLED.includes(l.stage));
+  const hotMode = itr === "hot" && noDate;
+  $("hotbar").hidden = !(hotOpen.length || hotMode);
+  $("hotbar").classList.toggle("on", hotMode);
+  if(!$("hotbar").hidden)
+    $("hotbar").innerHTML = hotMode
+      ? `✕ गरम leads दिख रही हैं — सब वापस दिखाइए
+         <small>इन पर अगली तारीख़ डाल दीजिए, वरना हाथ से निकल जाएँगी</small>`
+      : `🔥 ${hotOpen.length} गरम leads पर अगली तारीख़ नहीं डली — देखिए
+         <small>गरम ग्राहक 2–3 दिन में ठंडा पड़ जाता है</small>`;
+
+  const rows = LEADS.filter(l=>{
+    if(l.not_a_customer && !showNC) return false;
+    if(onlyStale && !isStale(l, td)) return false;
+    if(onlyToday && !(l.next_action_on && l.next_action_on <= td)) return false;
+    if(itr && (l.interest || "") !== itr) return false;
+    if(noDate && l.next_action_on) return false;
+    if(asg === "__none__" && l.assigned_uid) return false;
+    if(asg && asg !== "__none__" && l.assigned_uid !== asg) return false;
+    if(st && l.stage!==st) return false;
+    if(bb && (l.bill_band||l.bill_bracket)!==bb) return false;
+    if(!q) return true;
+    return [l.name,l.phone,l.village,l.district].some(v=>String(v||"").toLowerCase().includes(q));
+  });
+  SHOWN = rows.map(l=>l.id);
+  const hid = LEADS.filter(l=>l.not_a_customer).length;
+  $("count").textContent = `${rows.length} दिख रही हैं · कुल ${LEADS.length}`
+    + (hid && !showNC ? ` · ${hid} अपने/test छिपे हैं` : "");
+  if(!rows.length){
+    $("list").innerHTML = `<div class="empty">${onlyToday
+      ? "आज के लिए कोई call नहीं लगी है।" : "कोई lead नहीं मिली।"}</div>`;
+    PICKED.clear(); selBar(); return;
+  }
+  const nameOf = u => (STAFF.find(s=>s.user_id===u)||{}).name || "staff";
+  $("list").innerHTML = rows.map(l=>{
+    const band=l.bill_band||l.bill_bracket||"", big=/25,000|12,000/.test(band);
+    const place=[l.village,l.district].filter(Boolean).join(", ");
+    const slept = isStale(l, td) ? sleptDays(l) : null;
+    return `<div class="lead ${l.not_a_customer?"nc":""} ${slept!==null?"slept":""} ${PICKED.has(l.id)?"picked":""}"><div class="top"><div>
+      <button class="nmbtn" data-id="${l.id}">${esc(l.name||"बिना नाम")}</button>
+      <div class="meta">${l.phone?`<a class="tel" href="tel:${telHref(l.phone)}">${esc(l.phone)}</a>`:"phone नहीं"}
+      ${place?" · "+esc(place):""}</div></div>
+      ${band?`<span class="chip ${big?"big":""}">${esc(band)}</span>`:""}
+      ${isMalik()?`<input type="checkbox" class="pick" data-id="${l.id}" ${PICKED.has(l.id)?"checked":""}
+        title="चुनिए — फिर staff को सौंपिए">`:""}</div>
+      <div class="row2">
+        ${slept!==null?`<span class="chip slept ${slept>30?"bad":""}">🕐 ${slept} दिन से नहीं हिली</span>`:""}
+        ${l.assigned_uid&&isMalik()?`<span class="chip mine">👤 ${esc(nameOf(l.assigned_uid))}</span>`:""}
+        ${l.not_a_customer?`<span class="chip nc">ग्राहक नहीं</span>`:""}
+        ${l.interest==="hot"?`<span class="chip hot">गरम</span>`:""}
+        ${l.portal_app_no ? (isDone(l)
+            ? `<span class="chip fin">✅ ${esc(PSTATUS[l.portal_status]||l.portal_status)}</span>`
+            : `<span class="chip days">${daysStuck(l)} दिन अटका</span>`) : ""}
+        ${l.kw_required?`<span class="chip">${esc(l.kw_required)} kW</span>`:""}
+        ${l.next_action_on?`<span class="chip">अगला: ${esc(l.next_action_on)}</span>`:""}
+        <button class="btn-ghost btn callb" data-id="${l.id}" style="padding:7px 12px;font-size:13px">📞 call चढ़ाइए</button>
+        <select data-id="${l.id}" class="stg">
+          ${STAGES.map(([v,t])=>`<option value="${v}" ${l.stage===v?"selected":""}>${esc(t)}</option>`).join("")}
+        </select></div></div>`;
+  }).join("");
+  document.querySelectorAll("select.stg").forEach(s=>s.onchange=()=>changeStage(s.dataset.id,s.value));
+  document.querySelectorAll("input.pick").forEach(c=>c.onchange=()=>{
+    c.checked ? PICKED.add(c.dataset.id) : PICKED.delete(c.dataset.id);
+    c.closest(".lead").classList.toggle("picked", c.checked);
+    selBar();
+  });
+  wireCallButtons(); wireNames(); selBar();
+}
+
+/* ---------- चुनी हुई leads staff को सौंपिए ---------- */
+function selBar(){
+  const n = PICKED.size;
+  $("selbar").hidden = !(isMalik() && n);
+  $("selcount").textContent = `${n} चुनी हैं →`;
+  $("allbar").hidden = !(isMalik() && SHOWN.length);
+  $("a_all").textContent = n >= SHOWN.length && n
+    ? "☐ सब छोड़ दीजिए" : `☑️ दिख रही सब ${SHOWN.length} चुन लीजिए`;
+  planLikho();
+}
+
+/* कितने दिन में बँटेंगी — सौंपने से पहले ही दिखा दीजिए */
+const aageKaDin = (n) => { const d = new Date($("a_date").value || today());
+  d.setDate(d.getDate() + n); return d.toLocaleDateString("en-CA"); };
+
+function baantiye(ids){                       // [{date, ids}] की सूची
+  const per = +$("a_rate").value;
+  if(!per || ids.length <= per) return [{ date: $("a_date").value || today(), ids }];
+  const out = [];
+  for(let i = 0; i < ids.length; i += per)
+    out.push({ date: aageKaDin(out.length), ids: ids.slice(i, i + per) });
+  return out;
+}
+
+function planLikho(){
+  const n = PICKED.size;
+  if(!(isMalik() && n)){ $("a_plan").hidden = true; return; }
+  const parts = baantiye([...PICKED]);
+  $("a_plan").hidden = false;
+  $("a_plan").textContent = parts.length === 1
+    ? `सब ${n} एक ही दिन — ${parts[0].date}`
+    : `${n} leads ${parts.length} दिन में बँटेंगी — ${parts[0].date} से ${parts[parts.length-1].date} तक`;
+}
+$("a_rate").addEventListener("input", planLikho);
+$("a_date").addEventListener("input", planLikho);
+$("a_all").onclick = () => {
+  if(PICKED.size >= SHOWN.length && PICKED.size) PICKED.clear();
+  else SHOWN.forEach(id => PICKED.add(id));
+  render();
+};
+$("alarmbar").onclick = () => { $("f_stale").checked = !$("f_stale").checked; render(); };
+$("qbar").onclick = () => {
+  const a = qLoad().map(x => { delete x.error; return x; });   // गड़बड़ वालों को दोबारा मौक़ा
+  qSave(a); qBar(); qBhejo(true);
+};
+$("hotbar").onclick = () => {
+  const on = $("f_int").value === "hot" && $("f_nodate").checked;
+  $("f_int").value = on ? "" : "hot";
+  $("f_nodate").checked = !on;
+  render();
+};
+$("a_clear").onclick = () => { PICKED.clear(); render(); };
+$("a_go").onclick = async () => {
+  const who = $("a_who").value, dt = $("a_date").value || today();
+  if(!who) return say("msg","पहले staff चुनिए — अभी कोई staff दर्ज नहीं है");
+  if(!PICKED.size) return;
+  const ids = [...PICKED], parts = baantiye(ids);
+  $("a_go").disabled = true; $("a_go").textContent = "सौंप रहे हैं…";
+  try{
+    for(const p of parts){
+      $("a_go").textContent = `सौंप रहे हैं… ${p.date}`;
+      await apiRetry(`/rest/v1/leads?id=in.(${p.ids.join(",")})`,{method:"PATCH",
+        headers:{Prefer:"return=minimal"},
+        body: JSON.stringify({assigned_uid: who, next_action_on: p.date})});
+      const set = new Set(p.ids);
+      LEADS.forEach(l=>{ if(set.has(l.id)){ l.assigned_uid=who; l.next_action_on=p.date; } });
+    }
+    const nm = (STAFF.find(s=>s.user_id===who)||{}).name || "staff";
+    PICKED.clear(); render();
+    say("msg", parts.length === 1
+      ? `${ids.length} leads ${nm} को सौंप दीं — ${dt}`
+      : `${ids.length} leads ${nm} को सौंप दीं — ${parts.length} दिन में बँटीं (${parts[0].date} से)`,
+      "ok"); setTimeout(()=>say("msg",""),4000);
+  }catch(e){ say("msg","सौंपी नहीं गईं — "+e.message); }
+  finally{ $("a_go").disabled=false; $("a_go").textContent="सौंप दीजिए"; }
+};
+
+function renderStuck(){
+  const apps  = LEADS.filter(l=>l.portal_app_no);
+  const live  = apps.filter(l=>!isDone(l));                 // अब भी अटकी
+  const fin   = apps.filter(isDone);                        // निपट चुकीं
+  const showFin = $("f_fin").checked;
+  const all = (showFin ? apps : live).sort((a,b)=>daysStuck(b)-daysStuck(a));
+  const q=$("q2").value.trim().toLowerCase(), ps=$("f_pstatus").value;
+  const rows = all.filter(l=>{
+    if(ps && l.portal_status!==ps) return false;
+    if(!q) return true;
+    return [l.name,l.phone,l.portal_app_no].some(v=>String(v||"").toLowerCase().includes(q));
+  });
+  const sub = live.reduce((s,l)=>s+(+l.subsidy_eligible||0),0);
+  const loss= live.reduce((s,l)=>s+(+l.bill_lost||0),0);
+  const old = live.length ? Math.max(...live.map(daysStuck)) : 0;
+  const got = fin.reduce((s,l)=>s+(+l.subsidy_eligible||0),0);
+  $("t_stuck").textContent = `🔴 अटकी applications (${live.length})`;
+  $("strip").innerHTML =
+    `<div><div class="k">अब भी अटकी</div><div class="v">${live.length}</div></div>
+     <div><div class="k">रुकी हुई subsidy</div><div class="v">${rs(sub)}</div></div>
+     <div><div class="k">ग्राहकों का बिल नुक़सान</div><div class="v">${rs(loss)}</div></div>
+     <div><div class="k">सबसे पुरानी</div><div class="v">${old} दिन</div></div>
+     <div><div class="k">✅ निपट चुकीं</div><div class="v">${fin.length}${fin.length?` · ${rs(got)}`:""}</div></div>`;
+  $("count2").textContent = `${rows.length} दिख रही हैं · सबसे पुरानी सबसे ऊपर`
+    + (fin.length && !showFin ? ` · ${fin.length} निपटी हुई छिपी हैं` : "");
+  if(!rows.length){ $("list2").innerHTML =
+    `<div class="empty">${live.length?"कोई नहीं मिली।":"🎉 एक भी application अटकी नहीं है।"}</div>`;
+    return; }
+  $("list2").innerHTML = rows.map(l=>`
+    <div class="lead ${isDone(l)?"fin":(daysStuck(l)>365?"urgent":"")}"><div class="top"><div>
+      <button class="nmbtn" data-id="${l.id}">${esc(l.name||"बिना नाम")}</button>
+      <div class="meta">${l.phone?`<a class="tel" href="tel:${telHref(l.phone)}">${esc(l.phone)}</a>`:""}
+        · ${esc(l.portal_app_no)}</div></div>
+      ${isDone(l) ? `<span class="chip fin">✅ पूरा</span>`
+                  : `<span class="chip days">${daysStuck(l)} दिन</span>`}</div>
+      <div class="row2">
+        <span class="chip">${esc(PSTATUS[l.portal_status]||l.portal_status||"")}</span>
+        ${l.system_kw?`<span class="chip">${esc(l.system_kw)} kW</span>`:""}
+        ${l.subsidy_eligible?`<span class="chip money">subsidy ${rs(l.subsidy_eligible)}</span>`:""}
+        ${l.bill_lost?`<span class="chip hot">नुक़सान ${rs(l.bill_lost)}</span>`:""}
+        ${l.applied_on?`<span class="chip">apply: ${esc(l.applied_on)}</span>`:""}
+        <button class="btn-ghost btn callb" data-id="${l.id}" style="padding:7px 12px;font-size:13px">📞 call चढ़ाइए</button>
+      </div></div>`).join("");
+  wireCallButtons(); wireNames();
+}
+
+/* ---------- ⚡ चालू सिस्टम ---------- */
+function redraw(){
+  if(TAB==="leads") return render();
+  if(TAB==="stuck") return renderStuck();
+  if(TAB==="work")  return renderWork();
+  return renderLive();
+}
+/* तारीख़ से तारीख़ तक पूरे दिन — घंटे-मिनट का हिसाब नहीं */
+const dayNum = s => Math.floor(new Date(s+"T00:00:00").getTime()/86400000);
+const daysTo = d => d ? dayNum(d) - dayNum(today()) : null;
+
+function renderLive(){
+  const all = LEADS.filter(isLive)
+    .sort((a,b)=> String(b.commissioned_on).localeCompare(String(a.commissioned_on)));
+  const q = $("q3").value.trim().toLowerCase(), pt = $("f_ptype").value, am = $("f_amc").value;
+  const rows = all.filter(l=>{
+    if(pt && (l.project_type||"other") !== pt) return false;
+    const d = daysTo(l.amc_due_on);
+    if(am === "due"  && !(d !== null && d <= 0)) return false;
+    if(am === "soon" && !(d !== null && d > 0 && d <= 30)) return false;
+    if(am === "none" && l.amc_due_on) return false;
+    if(!q) return true;
+    return [l.name,l.phone,l.village,l.district].some(v=>String(v||"").toLowerCase().includes(q));
+  });
+  const kw   = all.reduce((s,l)=>s+(+l.installed_kw||+l.system_kw||0),0);
+  const due  = all.filter(l=>{ const d=daysTo(l.amc_due_on); return d!==null && d<=30; }).length;
+  const sub  = all.filter(l=>(l.project_type||"") === "pm_surya_ghar").length;
+  $("t_live").textContent = `⚡ चालू सिस्टम (${all.length})`;
+  $("strip3").innerHTML =
+    `<div><div class="k">चालू सिस्टम</div><div class="v">${all.length}</div></div>
+     <div><div class="k">कुल क्षमता</div><div class="v">${(Math.round(kw*100)/100)} kW</div></div>
+     <div><div class="k">⏰ AMC — 30 दिन में</div><div class="v">${due}</div></div>
+     <div><div class="k">PM सूर्य घर</div><div class="v">${sub}</div></div>
+     <div><div class="k">बिना subsidy</div><div class="v">${all.length - sub}</div></div>`;
+  $("count3").textContent = `${rows.length} दिख रहे हैं · सबसे नया सबसे ऊपर`;
+  if(!rows.length){ $("list3").innerHTML =
+    `<div class="empty">${all.length ? "कोई नहीं मिला।" :
+      "अभी एक भी चालू सिस्टम दर्ज नहीं है। किसी lead का पन्ना खोलकर “⚡ यह सिस्टम चालू हो गया” दबाइए।"}</div>`;
+    return; }
+  $("list3").innerHTML = rows.map(l=>{
+    const d = daysTo(l.amc_due_on);
+    const amc = l.amc_due_on
+      ? (d <= 0  ? `<span class="chip hot">⏰ AMC का समय आ गया — ${esc(l.amc_due_on)}</span>`
+        : d <= 30 ? `<span class="chip big">AMC ${d} दिन में</span>`
+                  : `<span class="chip">AMC: ${esc(l.amc_due_on)}</span>`)
+      : `<span class="chip">AMC तारीख़ नहीं डली</span>`;
+    const place = [l.village,l.district].filter(Boolean).join(", ");
+    return `<div class="lead ${d!==null&&d<=0?"urgent":""}"><div class="top"><div>
+      <button class="nmbtn" data-id="${l.id}">${esc(l.name||"बिना नाम")}</button>
+      <div class="meta">${l.phone?`<a class="tel" href="tel:${telHref(l.phone)}">${esc(l.phone)}</a>`:""}
+        ${place?" · "+esc(place):""}</div></div>
+      <span class="chip fin">${esc(l.installed_kw||l.system_kw||"?")} kW</span></div>
+      <div class="row2">
+        <span class="chip">${esc(PT[l.project_type]||"तरह नहीं डली")}</span>
+        <span class="chip">चालू: ${esc(l.commissioned_on)}</span>
+        ${amc}
+        ${l.system_note?`<span class="chip">${esc(l.system_note).slice(0,40)}</span>`:""}
+        <button class="btn-ghost btn callb" data-id="${l.id}" style="padding:7px 12px;font-size:13px">📞 call चढ़ाइए</button>
+      </div></div>`;
+  }).join("");
+  wireCallButtons(); wireNames();
+}
+
+/* uid से नाम — किसने lead जोड़ी, किसको सौंपी */
+function naamSe(uid){
+  if(!uid) return "";
+  if(uid === ME.uid) return ME.name || "आप";
+  const s = STAFF.find(x => x.user_id === uid);
+  return s ? s.name : "";
+}
+function laayaKaun(l){
+  if(!l.created_by || l.created_by === ME.uid) return "";
+  const n = naamSe(l.created_by);
+  return n ? `✋ ${esc(n)} लाए` : "";
+}
+
+/* ---------- 📊 काम का हिसाब ---------- */
+let WORK = null;                       // { from, calls:[], visits:[] }
+
+function fromDate(days){
+  const d = new Date(); d.setHours(0,0,0,0);
+  if(+days === 1){ d.setDate(d.getDate()-1); return {from:d, only:"kal"}; }
+  d.setDate(d.getDate() - (+days));
+  return {from:d, only:null};
+}
+
+async function loadWork(){
+  const sel = $("f_when").value;
+  const { from } = fromDate(sel);
+  const iso = from.toISOString(), day = from.toLocaleDateString("en-CA");
+  $("list4").innerHTML = `<div class="empty">हिसाब लगा रहे हैं…</div>`;
+  try{
+    const [calls, visits] = await Promise.all([
+      apiRetry(`/rest/v1/calls?select=staff,outcome,interest,called_at,lead_id`
+               + `&called_at=gte.${iso}&order=called_at.desc&limit=5000`),
+      apiRetry(`/rest/v1/site_visits?select=visited_by,visit_date,lead_id`
+               + `&visit_date=gte.${day}&limit=2000`)
+    ]);
+    WORK = { sel, calls: calls||[], visits: visits||[], from };
+    renderWork();
+  }catch(e){ $("list4").innerHTML = `<div class="empty">हिसाब नहीं आया — ${esc(e.message)}</div>`; }
+}
+
+function renderWork(){
+  if(!WORK){ loadWork(); return; }
+  let { calls, visits, sel, from } = WORK;
+  if(+sel === 1){                       // सिर्फ़ कल वाला दिन
+    const nextDay = new Date(from); nextDay.setDate(nextDay.getDate()+1);
+    calls  = calls.filter(c => new Date(c.called_at) < nextDay);
+    visits = visits.filter(v => v.visit_date === from.toLocaleDateString("en-CA"));
+  }
+  // किस-किस के नाम से काम हुआ
+  const people = new Map();            // नाम → हिसाब
+  const row = n => { if(!people.has(n)) people.set(n, { name:n, calls:0, done:0, hot:0,
+    visits:0, made:0, leads:new Set() }); return people.get(n); };
+
+  // जो दर्ज हैं वे सब दिखें, चाहे काम शून्य हो
+  if(ME.name) row(ME.name);
+  STAFF.forEach(s => row(s.name));
+
+  calls.forEach(c=>{
+    const r = row(c.staff || "नाम नहीं डाला");
+    r.calls++; if(c.outcome === "connected") r.done++;
+    if(c.interest === "hot") r.hot++;
+    if(c.lead_id) r.leads.add(c.lead_id);
+  });
+  visits.forEach(v => row(v.visited_by || "नाम नहीं डाला").visits++);
+
+  // किसे कितनी leads सौंपी हैं, और उनमें से कितनी छुई नहीं
+  const calledIds = new Set(calls.map(c=>c.lead_id));
+  const byUid = new Map(STAFF.map(s=>[s.user_id, s.name]));
+  if(ME.uid) byUid.set(ME.uid, ME.name);
+  LEADS.forEach(l=>{
+    if(!l.assigned_uid || l.not_a_customer) return;
+    if(SETTLED.includes(l.stage)) return;
+    const nm = byUid.get(l.assigned_uid); if(!nm) return;
+    const r = row(nm);
+    r.assigned = (r.assigned||0) + 1;
+    if(!calledIds.has(l.id)){ (r.untouched = r.untouched || []).push(l); }
+  });
+
+  // इस अवधि में किसने कितनी नई lead ख़ुद जोड़ी
+  const fromDay = from.toLocaleDateString("en-CA");
+  const onlyDay = +sel === 1 ? fromDay : null;
+  LEADS.forEach(l=>{
+    if(!l.created_by || !l.created_on) return;
+    if(l.created_on < fromDay) return;
+    if(onlyDay && l.created_on !== onlyDay) return;
+    const nm = byUid.get(l.created_by); if(!nm) return;
+    row(nm).made++;
+  });
+
+  const all = [...people.values()].sort((a,b)=> b.calls - a.calls);
+  const T = all.reduce((s,r)=>({ calls:s.calls+r.calls, done:s.done+r.done,
+    hot:s.hot+r.hot, visits:s.visits+r.visits, made:s.made+r.made }),
+    {calls:0,done:0,hot:0,visits:0,made:0});
+  const kabSe = +sel === 0 ? "आज" : +sel === 1 ? "कल"
+              : `${sel} दिन में (${from.toLocaleDateString("en-IN")} से)`;
+
+  $("strip4").innerHTML =
+    `<div><div class="k">${esc(kabSe)} — कुल calls</div><div class="v">${T.calls}</div></div>
+     <div><div class="k">बात हुई</div><div class="v">${T.done}</div></div>
+     <div><div class="k">🔥 गरम निकलीं</div><div class="v">${T.hot}</div></div>
+     <div><div class="k">🏠 Site visits</div><div class="v">${T.visits}</div></div>
+     <div><div class="k">🆕 नई leads लाईं</div><div class="v">${T.made}</div></div>`;
+
+  if(!all.length){ $("list4").innerHTML = `<div class="empty">अभी कोई दर्ज ही नहीं है।</div>`; return; }
+
+  $("list4").innerHTML = all.map(r=>{
+    const kuchNahi = r.calls === 0 && r.visits === 0 && r.made === 0;
+    const pct = r.assigned ? Math.round((r.assigned - (r.untouched||[]).length) * 100 / r.assigned) : null;
+    return `<div class="wcard ${kuchNahi?"zero":""}">
+      <h4>${esc(r.name)}</h4>
+      <div class="who">${kuchNahi ? "⚠️ इस अवधि में कुछ नहीं हुआ"
+        : `${r.leads.size} अलग-अलग ग्राहकों से बात की कोशिश`}</div>
+      <div class="nums">
+        <div class="num"><div class="n">${r.calls}</div><div class="t">calls चढ़ीं</div></div>
+        <div class="num good"><div class="n">${r.done}</div><div class="t">बात हुई</div></div>
+        <div class="num warn"><div class="n">${r.hot}</div><div class="t">🔥 गरम</div></div>
+        <div class="num"><div class="n">${r.visits}</div><div class="t">🏠 visits</div></div>
+        <div class="num ${r.made?"good":""}"><div class="n">${r.made}</div><div class="t">🆕 नई leads</div></div>
+      </div>
+      ${r.assigned ? `<div class="untouched">
+        <b>सौंपी गई ${r.assigned} leads में से ${(r.untouched||[]).length} को इस अवधि में छुआ तक नहीं
+          ${pct !== null ? ` · ${pct}% हुआ` : ""}</b>
+        ${(r.untouched||[]).length ? `<div class="names">${
+          r.untouched.slice(0,12).map(l=>
+            `<button class="unt" data-id="${l.id}">${esc(l.name||"बिना नाम")}</button>`).join("")
+          }${r.untouched.length>12?`<span class="chip">और ${r.untouched.length-12}</span>`:""}</div>` : ""}
+      </div>` : ""}
+    </div>`;
+  }).join("");
+  document.querySelectorAll("button.unt").forEach(b => b.onclick = () => openPanna(b.dataset.id));
+}
+$("w_refresh").onclick = loadWork;
+$("f_when").addEventListener("input", loadWork);
+
+/* ---------- lead का पन्ना ---------- */
+let PANNA = null;
+const I = Object.fromEntries(INTEREST), O = Object.fromEntries(OUTCOME), U = Object.fromEntries(USES);
+const digits = s => String(s||"").replace(/\D/g,"");
+
+/* नंबर को साफ़ करके असली 10 अंक निकालिए —
+   +91 7398888847 · 917398888847 · 07398888847 · 7398888847 — सब एक जैसे */
+function tel10(s){
+  let d = digits(s).replace(/^0+/, "");
+  if(d.length > 10 && d.startsWith("91")) d = d.slice(-10);   // देश-कोड हटाइए
+  else if(d.length > 10) d = d.slice(-10);                    // और कोई उपसर्ग हो तब भी
+  return d;
+}
+/* फ़ोन लगाने के लिए — + ज़रूरी है, वरना फ़ोन 12 अंकों को देसी नंबर समझकर मना कर देता है */
+const telHref = s => { const d = tel10(s);
+  return d.length === 10 ? "+91" + d : (digits(s) ? "+" + digits(s) : ""); };
+/* WhatsApp के लिए — बिना + , देश-कोड के साथ */
+const waNo = s => { const d = tel10(s); return d.length === 10 ? "91" + d : digits(s); };
+/* कितने दिन अटका — apply की तारीख़ से आज तक, अपने-आप */
+function daysStuck(l){
+  if(l.applied_on){
+    const d = dayNum(today()) - dayNum(l.applied_on);
+    if(!isNaN(d) && d >= 0) return d;
+  }
+  return l.days_stuck || 0;
+}
+function dt(s){
+  if(!s) return "";
+  const d = new Date(s); if(isNaN(d)) return esc(s);
+  return d.toLocaleString("en-IN",{day:"2-digit",month:"short",year:"numeric",
+    hour:"2-digit",minute:"2-digit",hour12:true});
+}
+function wireNames(){
+  document.querySelectorAll("button.nmbtn").forEach(b => b.onclick = () => openPanna(b.dataset.id));
+}
+function openPanna(id){
+  PANNA = LEADS.find(x => x.id === id); if(!PANNA) return;
+  const l = PANNA, staffMode = ME.role === "staff";
+  $("p_name").textContent = l.name || "बिना नाम";
+  const slept = isStale(l, today()) ? sleptDays(l) : null;
+  $("p_sub").innerHTML = [l.phone ? esc(l.phone) : "phone नहीं",
+    [l.village,l.district].filter(Boolean).map(esc).join(", "),
+    S[l.stage] || "",
+    laayaKaun(l),
+    slept !== null ? `<b style="color:#92400e">🕐 ${slept} दिन से नहीं हिली</b>` : ""
+  ].filter(Boolean).join(" · ");
+
+  $("p_tel").href = l.phone ? "tel:"+telHref(l.phone) : "#";
+  $("p_wa").href  = l.phone ? "https://wa.me/"+waNo(l.phone) : "#";
+
+  // अटकी application का डिब्बा
+  if(l.portal_app_no){
+    const fin = isDone(l);
+    $("p_portal").hidden = false;
+    $("p_portal").className = "pbox" + (fin ? " ok" : "");
+    $("p_portal").innerHTML = fin
+      ? `<b>✅ PM Surya Ghar application पूरी हो चुकी</b><br>
+         Application: ${esc(l.portal_app_no)} · ${esc(PSTATUS[l.portal_status]||l.portal_status)}
+         ${l.system_kw?` · ${esc(l.system_kw)} kW`:""}
+         ${l.subsidy_eligible?` · subsidy ${rs(l.subsidy_eligible)}`:""}`
+      : `<b>🔴 PM Surya Ghar application अटकी है</b><br>
+         Application: ${esc(l.portal_app_no)} ·
+         ${esc(PSTATUS[l.portal_status]||l.portal_status||"")} ·
+         <b>${daysStuck(l)} दिन</b><br>
+         ${l.system_kw?`${esc(l.system_kw)} kW · `:""}
+         ${l.applied_on?`apply: ${esc(l.applied_on)} · `:""}
+         ${l.subsidy_eligible?`रुकी subsidy ${rs(l.subsidy_eligible)}`:""}
+         ${l.bill_lost?` · ग्राहक का नुक़सान ${rs(l.bill_lost)}`:""}`;
+  } else $("p_portal").hidden = true;
+
+  // चालू सिस्टम
+  $("p_f_ptype").value = l.project_type || "";
+  $("p_f_comm").value  = l.commissioned_on || "";
+  $("p_f_ikw").value   = l.installed_kw ?? "";
+  $("p_f_amc").value   = l.amc_due_on || "";
+  $("p_f_snote").value = l.system_note || "";
+  $("p_live_btn").hidden = isLive(l);
+  if(isLive(l)){
+    const d = daysTo(l.amc_due_on);
+    $("p_live").hidden = false;
+    $("p_live").innerHTML =
+      `<b>⚡ सिस्टम चालू है — ${esc(l.commissioned_on)} से</b><br>
+       ${esc(PT[l.project_type]||"तरह नहीं डली")}
+       ${l.installed_kw||l.system_kw?` · ${esc(l.installed_kw||l.system_kw)} kW`:""}
+       ${l.amc_due_on ? ` · अगली AMC ${esc(l.amc_due_on)}${d<=0?" — समय आ गया":d<=30?` (${d} दिन में)`:""}`
+                      : " · AMC तारीख़ नहीं डली"}`;
+  } else $("p_live").hidden = true;
+
+  // application के खाने — सिर्फ़ मालिक बदल सकता है
+  $("p_pedit").hidden = !isMalik();
+  if(isMalik()){
+    $("p_f_app").value     = l.portal_app_no || "";
+    $("p_f_applied").value = l.applied_on || "";
+    $("p_f_skw").value     = l.system_kw ?? "";
+    $("p_f_pstatus").value = l.portal_status || "";
+    $("p_f_sub").value     = l.subsidy_eligible ?? "";
+    $("p_f_loss").value    = l.bill_lost ?? "";
+    $("p_done").hidden = isDone(l) || !l.portal_app_no;
+  }
+
+  $("p_f_name").value     = l.name || "";
+  $("p_f_phone").value    = l.phone || "";
+  $("p_f_village").value  = l.village || "";
+  $("p_f_district").value = l.district || "";
+  $("p_f_addr").value     = l.full_address || "";
+  $("p_f_bill").value     = l.monthly_bill ?? "";
+  $("p_f_band").value     = l.bill_band || l.bill_bracket || "";
+  $("p_f_use").value      = l.connection_use || "";
+  $("p_f_kw").value       = l.kw_required ?? "";
+  $("p_f_interest").value = l.interest || "";
+  $("p_f_next").value     = l.next_action_on || "";
+  $("p_f_stage").value    = l.stage || "new";
+  $("p_f_notes").value    = l.notes || "";
+  $("p_f_name").readOnly = staffMode; $("p_f_phone").readOnly = staffMode;
+
+  say("p_msg",""); $("panna").hidden = false;
+  $("panna").scrollTop = 0;
+  loadCalls(l.id); loadVisits(l.id); loadFull(l);
+}
+/* पन्ना खुलने पर बाक़ी भारी खाने (note, पूरा पता…) तभी मँगाइए — सूची में नहीं आते */
+async function loadFull(l){
+  if(l.__full) return;                       // एक बार आ गए, दोबारा नहीं
+  try{
+    const r = await apiRetry(`/rest/v1/leads?id=eq.${l.id}&select=*&limit=1`);
+    const row = Array.isArray(r) ? r[0] : null;
+    if(!row) return;
+    Object.assign(l, row); l.__full = true;
+    if(PANNA && PANNA.id === l.id){          // पन्ना अब भी खुला है तो खाने भर दीजिए
+      $("p_f_addr").value  = l.full_address || "";
+      $("p_f_notes").value = l.notes || "";
+      $("p_f_bill").value  = l.monthly_bill ?? "";
+      $("p_f_use").value   = l.connection_use || "";
+    }
+  }catch(e){ /* न आए तो पन्ना फिर भी चलता रहेगा */ }
+}
+$("p_close").onclick = () => { $("panna").hidden = true; PANNA = null; };
+$("p_call").onclick  = () => { if(PANNA) openCall(PANNA.id); };
+
+async function loadCalls(id){
+  $("p_calls").innerHTML = `<div class="empty">ला रहे हैं…</div>`;
+  $("p_ccount").textContent = "";
+  try{
+    const rows = await apiRetry(
+      `/rest/v1/calls?lead_id=eq.${id}&select=*&order=called_at.desc&limit=100`) || [];
+    $("p_ccount").textContent = `— ${rows.length}`;
+    if(!rows.length){
+      $("p_calls").innerHTML = `<div class="empty">अभी एक भी call नहीं चढ़ी।</div>`; return;
+    }
+    $("p_calls").innerHTML = rows.map(c=>{
+      const ok = c.outcome === "connected";
+      return `<div class="callrow ${ok?"good":"bad"}">
+        <div><b>${esc(O[c.outcome]||c.outcome||"")}</b>
+          ${c.interest?` · दिलचस्पी: ${esc(I[c.interest]||c.interest)}`:""}
+          ${c.staff?` · ${esc(c.staff)}`:""}</div>
+        <div class="when">${dt(c.called_at||c.created_at)}
+          ${c.next_call_on?` · अगली call: ${esc(c.next_call_on)}`:""}</div>
+        ${c.notes?`<div class="nt">${esc(c.notes)}</div>`:""}
+        ${c.ai_summary?`<div class="nt">🤖 ${esc(c.ai_summary)}</div>`:""}
+      </div>`;
+    }).join("");
+  }catch(e){ $("p_calls").innerHTML = `<div class="empty">calls नहीं आईं — ${esc(e.message)}</div>`; }
+}
+
+$("p_save").onclick = async () => {
+  if(!PANNA) return;
+  const num = v => { v = String(v).trim(); return v === "" ? null : (isNaN(+v) ? null : +v); };
+  const txt = v => { v = String(v).trim(); return v === "" ? null : v; };
+  const body = {
+    village: txt($("p_f_village").value), district: txt($("p_f_district").value),
+    full_address: txt($("p_f_addr").value), monthly_bill: num($("p_f_bill").value),
+    bill_band: txt($("p_f_band").value), connection_use: txt($("p_f_use").value),
+    kw_required: num($("p_f_kw").value), interest: txt($("p_f_interest").value),
+    next_action_on: txt($("p_f_next").value), stage: $("p_f_stage").value,
+    notes: txt($("p_f_notes").value),
+    project_type: txt($("p_f_ptype").value), commissioned_on: txt($("p_f_comm").value),
+    installed_kw: num($("p_f_ikw").value), amc_due_on: txt($("p_f_amc").value),
+    system_note: txt($("p_f_snote").value)
+  };
+  if(isMalik()){
+    const nm = txt($("p_f_name").value), ph = txt($("p_f_phone").value);
+    if(!nm)  return say("p_msg","नाम ख़ाली नहीं रह सकता");
+    if(!ph)  return say("p_msg","Phone ख़ाली नहीं रह सकता");
+    body.name = nm; body.phone = ph;
+    body.portal_app_no    = txt($("p_f_app").value);
+    body.applied_on       = txt($("p_f_applied").value);
+    body.system_kw        = num($("p_f_skw").value);
+    body.portal_status    = txt($("p_f_pstatus").value);
+    body.subsidy_eligible = num($("p_f_sub").value);
+    body.bill_lost        = num($("p_f_loss").value);
+  }
+  $("p_save").disabled = true; $("p_save").textContent = "सहेज रहे हैं…";
+  try{
+    await apiRetry(`/rest/v1/leads?id=eq.${PANNA.id}`,{method:"PATCH",
+      headers:{Prefer:"return=representation"}, body: JSON.stringify(body)})
+      .then(r => { if(Array.isArray(r) && r[0]) Object.assign(PANNA, r[0]); else Object.assign(PANNA, body); });
+    openPanna(PANNA.id);
+    redraw();
+    say("p_msg","सहेज दिया","ok"); setTimeout(()=>say("p_msg",""),2500);
+  }catch(e){ say("p_msg","सहेजा नहीं गया — "+e.message); }
+  finally{ $("p_save").disabled=false; $("p_save").textContent="बदलाव सहेजिए"; }
+};
+
+/* "⚡ यह सिस्टम चालू हो गया" — तारीख़, stage और AMC एक साथ */
+function plusYear(d){ const x = new Date(d+"T00:00:00"); x.setFullYear(x.getFullYear()+1);
+  return x.toLocaleDateString("en-CA"); }
+$("p_live_btn").onclick = async () => {
+  if(!PANNA) return;
+  const on = $("p_f_comm").value || today();
+  const upd = { commissioned_on: on, stage: "commissioned" };
+  if(!$("p_f_amc").value) upd.amc_due_on = plusYear(on);
+  if(!$("p_f_ptype").value)
+    upd.project_type = PANNA.portal_app_no ? "pm_surya_ghar" : "residential";
+  const ikw = $("p_f_ikw").value.trim();
+  if(ikw && !isNaN(+ikw)) upd.installed_kw = +ikw;
+  else if(PANNA.system_kw) upd.installed_kw = +PANNA.system_kw;
+  $("p_live_btn").disabled = true; $("p_live_btn").textContent = "कर रहे हैं…";
+  try{
+    await apiRetry(`/rest/v1/leads?id=eq.${PANNA.id}`,{method:"PATCH",
+      headers:{Prefer:"return=minimal"}, body: JSON.stringify(upd)});
+    if(upd.stage) upd.stage_changed_on = today();
+    Object.assign(PANNA, upd);
+    openPanna(PANNA.id); redraw();
+    say("p_msg", `चालू सिस्टम में जुड़ गया — अगली AMC ${upd.amc_due_on || $("p_f_amc").value}`, "ok");
+  }catch(e){ say("p_msg","हुआ नहीं — "+e.message); }
+  finally{ $("p_live_btn").disabled=false;
+    $("p_live_btn").textContent="⚡ यह सिस्टम चालू हो गया — आज की तारीख़ डालिए"; }
+};
+
+/* "पूरा हो गया" — एक दबाने में निपटाइए */
+$("p_done").onclick = async () => {
+  if(!PANNA) return;
+  const upd = { portal_status: "Commissioned" };
+  if(PANNA.stage !== "after_sales") upd.stage = "commissioned";
+  $("p_done").disabled = true; $("p_done").textContent = "कर रहे हैं…";
+  try{
+    await apiRetry(`/rest/v1/leads?id=eq.${PANNA.id}`,{method:"PATCH",
+      headers:{Prefer:"return=minimal"}, body: JSON.stringify(upd)});
+    if(upd.stage) upd.stage_changed_on = today();
+    Object.assign(PANNA, upd);
+    openPanna(PANNA.id);
+    redraw();
+    say("p_msg", `${PANNA.name} — पूरा हो गया, अटकी सूची से हट गया`, "ok");
+  }catch(e){ say("p_msg","हुआ नहीं — "+e.message); }
+  finally{ $("p_done").disabled=false;
+    $("p_done").textContent="✅ पूरा हो गया — subsidy आ गई, सूची से हटाइए"; }
+};
+
+/* ---------- 🏠 Site visit ---------- */
+let VISIT = null, VISIT_LEAD = null;
+const b3 = v => v === true ? "1" : v === false ? "0" : "";    // हाँ/नहीं → खाने के लिए
+const u3 = v => v === "1" ? true : v === "0" ? false : null;  // खाने से → हाँ/नहीं
+
+/* खाने का नाम → खिड़की का खाना */
+const VMAP = {
+  visit_date:"v_date", visited_by:"v_by", phase:"v_phase", estimated_kw:"v_ekw",
+  full_address:"v_addr", landmark:"v_landmark", access_note:"v_access",
+  gps_lat:"v_lat", gps_lng:"v_lng",
+  floors:"v_floors", height_ft:"v_height", roof_length_ft:"v_rlen", roof_width_ft:"v_rwid",
+  roof_type:"v_roof", shadow_note:"v_shnote",
+  gi_pipe_meters:"v_gi", structure_height_ft:"v_sheight", earthing_count:"v_earth",
+  dc_cable_meters:"v_dc", ac_cable_meters:"v_ac", extra_material:"v_extra",
+  consumer_number:"v_consumer", sanctioned_load:"v_load",
+  meter_location:"v_meter", inverter_location:"v_inv", notes:"v_notes"
+};
+const VNUM = ["estimated_kw","gps_lat","gps_lng","floors","height_ft","roof_length_ft",
+  "roof_width_ft","gi_pipe_meters","structure_height_ft","earthing_count",
+  "dc_cable_meters","ac_cable_meters","sanctioned_load"];
+const VBOOL = { vehicle_access:"v_vehicle", shadow_issue:"v_shadow",
+                elevated_structure:"v_elev", la_required:"v_la" };
+
+/* ---------- 📴 बिना network का काम — क़तार ---------- */
+/* network न मिले तो call यहीं फ़ोन में रुक जाती है और बाद में अपने-आप चली जाती है */
+const QKEY = "ss_queue";
+let QBUSY = false;
+
+function qLoad(){ try{ const a = JSON.parse(load(QKEY) || "[]"); return Array.isArray(a) ? a : []; }
+                  catch(e){ return []; } }
+function qSave(a){ try{ store(QKEY, JSON.stringify(a)); }catch(e){} }
+function qAdd(item){ const a = qLoad(); a.push(item); qSave(a); qBar(); }
+
+/* network की वजह से रुका, या सचमुच कोई गड़बड़ है? */
+function networkWaali(e){
+  const m = String(e && e.message || "");
+  if(!navigator.onLine) return true;
+  return /failed to fetch|networkerror|load failed|timeout|न मिला|गलती 5\d\d|गलती 0/i.test(m);
+}
+
+function qBar(){
+  const a = qLoad(), bar = $("qbar");
+  if(!bar) return;
+  const ruke = a.filter(x => !x.error).length, kharab = a.filter(x => x.error).length;
+  bar.hidden = !(ruke || kharab);
+  if(bar.hidden) return;
+  bar.className = "alarm" + (kharab ? " hot" : "");
+  bar.innerHTML = kharab
+    ? `⚠️ ${kharab} call भेजी नहीं जा सकी — दबाकर देखिए
+       <small>${ruke ? ruke+" और क़तार में · " : ""}दबाने पर दोबारा कोशिश होगी</small>`
+    : `📴 ${ruke} call भेजने बाक़ी — दबाकर अभी भेजिए
+       <small>network आते ही अपने-आप भी चली जाएँगी</small>`;
+}
+
+async function qBhejo(dikhao){
+  if(QBUSY) return;
+  let a = qLoad();
+  if(!a.length){ qBar(); return; }
+  QBUSY = true;
+  let gaya = 0, ruka = 0;
+  for(const item of a){
+    try{
+      for(const r of item.reqs)
+        await apiRetry(r.path, { method: r.method,
+          headers:{ Prefer:"return=minimal" }, body: JSON.stringify(r.body) });
+      item.done = true; gaya++;
+    }catch(e){
+      if(networkWaali(e)){ ruka++; break; }          // network नहीं है — बाक़ी रहने दीजिए
+      item.error = e.message || "गड़बड़";             // असली गड़बड़ — निशान लगाकर आगे बढ़िए
+    }
+  }
+  a = a.filter(x => !x.done); qSave(a);
+  QBUSY = false; qBar();
+  if(dikhao){
+    if(gaya && !a.length) say("msg", `✅ ${gaya} रुकी हुई call भेज दीं`, "ok");
+    else if(gaya)         say("msg", `${gaya} भेजीं · ${a.length} अभी भी बाक़ी`, "ok");
+    else if(ruka)         say("msg", "network अब भी नहीं मिल रहा — बाद में अपने-आप चली जाएँगी");
+    setTimeout(()=>say("msg",""), 3500);
+  } else if(gaya) redraw();
+}
+window.addEventListener("online", () => qBhejo(false));
+
+/* ---------- 📷 site visit की फ़ोटो ---------- */
+const BUCKET = "site-photos";
+const stHdr = () => ({ apikey: KEY, Authorization: "Bearer " + (TOK || KEY) });
+const kb = n => n >= 1048576 ? (n/1048576).toFixed(1)+" MB" : Math.round(n/1024)+" KB";
+
+/* फ़ोन में ही छोटी कीजिए — 4 MB की फ़ोटो ~200 KB हो जाती है */
+function chhotiKaro(file, maxSide = 1600, q = 0.7){
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+      const s = Math.min(1, maxSide / Math.max(w, h));
+      w = Math.max(1, Math.round(w*s)); h = Math.max(1, Math.round(h*s));
+      const c = document.createElement("canvas"); c.width = w; c.height = h;
+      c.getContext("2d").drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      c.toBlob(b => b ? res(b) : rej(new Error("फ़ोटो छोटी नहीं हो पाई")), "image/jpeg", q);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error("फ़ोटो पढ़ी नहीं जा सकी")); };
+    img.src = url;
+  });
+}
+
+async function photoChadhao(file, kind){
+  const blob = await chhotiKaro(file);
+  const path = `${VISIT_LEAD.id}/${VISIT.id}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.jpg`;
+  const r = await fetch(URL_.replace(/\/+$/,"") + `/storage/v1/object/${BUCKET}/${path}`, {
+    method: "POST", body: blob,
+    headers: { ...stHdr(), "Content-Type": "image/jpeg", "x-upsert": "false" } });
+  if(!r.ok){
+    const t = await r.text().catch(()=> "");
+    throw new Error(r.status === 413 ? "फ़ोटो बहुत बड़ी है" : (t || "चढ़ी नहीं — "+r.status));
+  }
+  await apiRetry("/rest/v1/site_visit_photos", { method:"POST",
+    headers:{ Prefer:"return=minimal" },
+    body: JSON.stringify({ site_visit_id: VISIT.id, kind, storage_path: path }) });
+  return blob.size;
+}
+
+async function loadPhotos(){
+  if(!VISIT){ $("v_pbox").hidden = true; $("v_pnote").hidden = false; return; }
+  $("v_pbox").hidden = false; $("v_pnote").hidden = true;
+  $("v_plist").innerHTML = `<div class="empty">ला रहे हैं…</div>`;
+  try{
+    const rows = await apiRetry(`/rest/v1/site_visit_photos?site_visit_id=eq.${VISIT.id}`
+      + `&select=id,kind,storage_path,caption,created_at&order=created_at`) || [];
+    if(!rows.length){ $("v_plist").innerHTML = `<div class="empty">अभी कोई फ़ोटो नहीं।</div>`; return; }
+    const K = Object.fromEntries(PHOTOS);
+    $("v_plist").innerHTML = `<div class="ptiles">` + rows.map(p=>
+      `<div class="ptile" data-id="${p.id}" data-path="${esc(p.storage_path)}">
+         <button class="ph" type="button">👁️ देखिए</button>
+         <div class="pk"><span>${esc(K[p.kind] || p.kind || "—")}</span>
+           ${isMalik() ? `<button type="button" class="pdel">मिटाइए</button>` : ""}</div>
+       </div>`).join("") + `</div>
+       <div class="hint">फ़ोटो तभी उतरेगी जब आप “देखिए” दबाएँगे — इससे data बचता है।</div>`;
+
+    document.querySelectorAll("#v_plist .ptile .ph").forEach(b => b.onclick = async () => {
+      const t = b.closest(".ptile"); b.textContent = "ला रहे हैं…";
+      try{
+        const r = await fetch(URL_.replace(/\/+$/,"")
+          + `/storage/v1/object/authenticated/${BUCKET}/${t.dataset.path}`, { headers: stHdr() });
+        if(!r.ok) throw new Error("नहीं मिली");
+        const u = URL.createObjectURL(await r.blob());
+        b.outerHTML = `<img src="${u}" alt="">`;
+      }catch(e){ b.textContent = "नहीं आई"; }
+    });
+    document.querySelectorAll("#v_plist .pdel").forEach(b => b.onclick = async () => {
+      const t = b.closest(".ptile");
+      if(!confirm("यह फ़ोटो मिटा दें? वापस नहीं आएगी।")) return;
+      b.disabled = true; b.textContent = "मिटा रहे हैं…";
+      try{
+        await fetch(URL_.replace(/\/+$/,"") + `/storage/v1/object/${BUCKET}/${t.dataset.path}`,
+          { method:"DELETE", headers: stHdr() });
+        await apiRetry(`/rest/v1/site_visit_photos?id=eq.${t.dataset.id}`,
+          { method:"DELETE", headers:{ Prefer:"return=minimal" } });
+        loadPhotos();
+      }catch(e){ b.disabled = false; b.textContent = "मिटी नहीं"; }
+    });
+  }catch(e){ $("v_plist").innerHTML = `<div class="empty">नहीं आईं — ${esc(e.message)}</div>`; }
+}
+
+$("v_pfile").addEventListener("change", async e => {
+  const files = [...(e.target.files || [])];
+  e.target.value = "";
+  if(!files.length || !VISIT) return;
+  const kind = $("v_pkind").value || "other";
+  $("v_plabel").style.pointerEvents = "none";
+  let done = 0, bachaya = 0, asli = 0;
+  for(const f of files){
+    say("v_pmsg", `चढ़ा रहे हैं ${done+1}/${files.length}…`);
+    try{
+      const nayi = await photoChadhao(f, kind);
+      asli += f.size; bachaya += nayi; done++;
+    }catch(err){ say("v_pmsg", `${done} चढ़ीं · रुक गया — ${err.message}`); break; }
+  }
+  $("v_plabel").style.pointerEvents = "";
+  if(done) say("v_pmsg",
+    `✅ ${done} फ़ोटो चढ़ीं — ${kb(asli)} की जगह सिर्फ़ ${kb(bachaya)} गईं`, "ok");
+  loadPhotos();
+});
+
+async function loadVisits(leadId){
+  $("p_visits").innerHTML = `<div class="empty">ला रहे हैं…</div>`;
+  $("p_vcount").textContent = "";
+  try{
+    const rows = await apiRetry(
+      `/rest/v1/site_visits?lead_id=eq.${leadId}&select=*&order=visit_date.desc`) || [];
+    $("p_vcount").textContent = rows.length ? `— ${rows.length}` : "";
+    if(!rows.length){
+      $("p_visits").innerHTML = `<div class="empty">अभी कोई site visit दर्ज नहीं।</div>`; return;
+    }
+    // किस visit पर कितनी फ़ोटो — एक ही बार में
+    const pc = {};
+    try{
+      const ph = await apiRetry(`/rest/v1/site_visit_photos?select=site_visit_id`
+        + `&site_visit_id=in.(${rows.map(v=>v.id).join(",")})`) || [];
+      ph.forEach(p => pc[p.site_visit_id] = (pc[p.site_visit_id]||0) + 1);
+    }catch(e){ /* गिनती न आए तो visit फिर भी दिखे */ }
+    $("p_visits").innerHTML = rows.map(v=>{
+      const area = (v.roof_length_ft && v.roof_width_ft)
+        ? `${v.roof_length_ft}×${v.roof_width_ft} फ़ुट` : "";
+      const chips = [
+        v.estimated_kw ? `${v.estimated_kw} kW` : "",
+        area, v.floors ? `${v.floors} मंज़िल` : "",
+        v.shadow_issue === true ? "छाया है" : "",
+        v.vehicle_access === false ? "गाड़ी नहीं जाती" : "",
+        v.consumer_number ? `उपभोक्ता ${v.consumer_number}` : "",
+        pc[v.id] ? `📷 ${pc[v.id]}` : ""
+      ].filter(Boolean);
+      return `<div class="visitrow" data-id="${v.id}">
+        <b>${esc(v.visit_date || "तारीख़ नहीं")}</b>
+        ${v.visited_by ? ` · ${esc(v.visited_by)}` : ""}
+        <div class="when">${v.landmark ? esc(v.landmark)+" · " : ""}${esc(v.full_address||"")}</div>
+        ${chips.length ? `<div class="kv">${chips.map(c=>`<span class="chip">${esc(c)}</span>`).join("")}</div>` : ""}
+        ${v.notes ? `<div class="when" style="margin-top:5px">${esc(v.notes)}</div>` : ""}
+      </div>`;
+    }).join("");
+    document.querySelectorAll(".visitrow").forEach(r =>
+      r.onclick = () => openVisit(rows.find(x => x.id === r.dataset.id)));
+  }catch(e){ $("p_visits").innerHTML = `<div class="empty">नहीं आईं — ${esc(e.message)}</div>`; }
+}
+
+function openVisit(v){
+  if(!PANNA) return;
+  VISIT = v || null; VISIT_LEAD = PANNA;
+  $("v_title").textContent = (v ? "Site visit बदलिए — " : "नया site visit — ") + (PANNA.name||"");
+  for(const [col, el] of Object.entries(VMAP)) $(el).value = v && v[col] != null ? v[col] : "";
+  for(const [col, el] of Object.entries(VBOOL)) $(el).value = v ? b3(v[col]) : "";
+  if(!v){
+    $("v_date").value = today();
+    $("v_by").value   = ME.name || load("ss_staff") || "";
+    $("v_addr").value = PANNA.full_address || "";
+    $("v_ekw").value  = PANNA.kw_required ?? "";
+  }
+  say("v_msg",""); say("v_pmsg",""); $("v_plist").innerHTML = "";
+  $("v_cancel").textContent = "रहने दीजिए";
+  loadPhotos();
+  $("visitbox").hidden = false; $("visitbox").scrollTop = 0;
+}
+$("p_newvisit").onclick = () => openVisit(null);
+$("v_close").onclick = $("v_cancel").onclick = () => { $("visitbox").hidden = true; VISIT = null; };
+
+$("v_gps").onclick = () => {
+  if(!navigator.geolocation) return say("v_msg","यह browser जगह नहीं बता सकता");
+  say("v_msg","जगह ढूँढ़ रहे हैं…","ok");
+  navigator.geolocation.getCurrentPosition(
+    p => { $("v_lat").value = p.coords.latitude.toFixed(6);
+           $("v_lng").value = p.coords.longitude.toFixed(6);
+           say("v_msg","जगह भर दी","ok"); setTimeout(()=>say("v_msg",""),2000); },
+    e => say("v_msg","जगह नहीं मिली — फ़ोन की location चालू कीजिए"),
+    { enableHighAccuracy:true, timeout:10000 });
+};
+
+$("v_save").onclick = async () => {
+  if(!VISIT_LEAD) return;
+  if(!$("v_date").value) return say("v_msg","Visit की तारीख़ ज़रूरी है");
+  const body = { lead_id: VISIT_LEAD.id };
+  for(const [col, el] of Object.entries(VMAP)){
+    const raw = $(el).value.trim();
+    body[col] = raw === "" ? null : (VNUM.includes(col) ? (isNaN(+raw) ? null : +raw) : raw);
+  }
+  for(const [col, el] of Object.entries(VBOOL)) body[col] = u3($(el).value);
+  if($("v_by").value.trim()) store("ss_staff", $("v_by").value.trim());
+
+  $("v_save").disabled = true; $("v_save").textContent = "सहेज रहे हैं…";
+  let NAYI = null;
+  try{
+    if(VISIT)
+      await apiRetry(`/rest/v1/site_visits?id=eq.${VISIT.id}`,{method:"PATCH",
+        headers:{Prefer:"return=minimal"}, body: JSON.stringify(body)});
+    else{
+      const out = await apiRetry("/rest/v1/site_visits",{method:"POST",
+        headers:{Prefer:"return=representation"}, body: JSON.stringify(body)});
+      NAYI = Array.isArray(out) ? out[0] : out;
+    }
+
+    // पहली visit दर्ज हो तो lead का stage भी आगे सरका दीजिए
+    if(!VISIT && ["new","no_answer","contacted","visit_scheduled"].includes(VISIT_LEAD.stage)){
+      const upd = { stage:"visit_done", stage_changed_on: today() };
+      if(body.estimated_kw && !VISIT_LEAD.kw_required) upd.kw_required = body.estimated_kw;
+      try{
+        await apiRetry(`/rest/v1/leads?id=eq.${VISIT_LEAD.id}`,{method:"PATCH",
+          headers:{Prefer:"return=minimal"}, body: JSON.stringify(upd)});
+        Object.assign(VISIT_LEAD, upd);
+      }catch(e2){ /* stage न बदले तो visit फिर भी सहेजी जा चुकी है */ }
+    }
+    loadVisits(VISIT_LEAD.id); redraw();
+    if(NAYI && NAYI.id){
+      // नई visit सहेजी गई — खिड़की खुली रखिए ताकि यहीं से फ़ोटो चढ़ सकें
+      VISIT = NAYI;
+      $("v_title").textContent = "Site visit बदलिए — " + (VISIT_LEAD.name || "");
+      $("v_cancel").textContent = "बंद कीजिए";
+      say("v_msg","✅ सहेज दी — अब नीचे 📷 फ़ोटो जोड़ सकते हैं","ok");
+      loadPhotos(); $("visitbox").scrollTop = $("visitbox").scrollHeight;
+    } else {
+      $("visitbox").hidden = true; VISIT = null;
+      say("p_msg","Site visit सहेज दी","ok"); setTimeout(()=>say("p_msg",""),2500);
+    }
+  }catch(e){ say("v_msg","सहेजी नहीं गई — "+e.message); }
+  finally{ $("v_save").disabled=false; $("v_save").textContent="सहेजिए"; }
+};
+
+/* ---------- call log ---------- */
+let CALL_LEAD = null;
+function wireCallButtons(){
+  document.querySelectorAll("button.callb").forEach(b => b.onclick = () => openCall(b.dataset.id));
+}
+function openCall(id){
+  CALL_LEAD = LEADS.find(x => x.id === id); if(!CALL_LEAD) return;
+  $("c_title").textContent = `Call चढ़ाइए — ${CALL_LEAD.name || ""}`;
+  $("c_outcome").value = "connected";
+  $("c_interest").value = CALL_LEAD.interest || "";
+  $("c_next").value = ""; $("c_notes").value = "";
+  $("c_staff").value = ME.name || load("ss_staff") || "";
+  $("c_staff").readOnly = !!ME.name;
+  $("c_nc").checked = isMalik() && !!CALL_LEAD.not_a_customer; ncToggle();
+  say("c_msg",""); $("callbox").hidden = false; $("c_outcome").focus();
+}
+function ncToggle(){
+  const off = $("c_nc").checked;
+  ["c_outcome","c_interest","c_next","c_staff"].forEach(i=>{ $(i).disabled = off; });
+  $("c_save").textContent = off ? "ग्राहक नहीं — हटा दीजिए" : "सहेजिए";
+}
+$("c_nc").onchange = ncToggle;
+$("c_cancel").onclick = () => $("callbox").hidden = true;
+$("c_save").onclick = async () => {
+  if(!CALL_LEAD) return;
+  if($("c_nc").checked) return markNotCustomer();
+  const outcome = $("c_outcome").value;
+  if(!outcome) return say("c_msg","Call का नतीजा चुनिए");
+  const staff = $("c_staff").value.trim();
+  const body = { lead_id: CALL_LEAD.id, called_at: new Date().toISOString(),
+    direction: "outbound", outcome };
+  if($("c_interest").value) body.interest = $("c_interest").value;
+  if($("c_next").value)     body.next_call_on = $("c_next").value;
+  if($("c_notes").value.trim()) body.notes = $("c_notes").value.trim();
+  if(staff){ body.staff = staff; store("ss_staff", staff); }
+
+  // lead पर भी निशान लगेगा — यह हिसाब पहले ही कर लीजिए, ताकि क़तार में भी जा सके
+  const upd = {};
+  if($("c_interest").value) upd.interest = $("c_interest").value;
+  if($("c_next").value)     upd.next_action_on = $("c_next").value;
+  const st = CALL_LEAD.stage;
+  if(outcome === "connected" && (st === "new" || st === "no_answer")) upd.stage = "contacted";
+  else if(outcome !== "connected" && st === "new") upd.stage = "no_answer";
+
+  const leadBaad = () => {   // फ़ोन में दिखने वाली lead तुरंत बदल दीजिए
+    if(Object.keys(upd).length){
+      const u = {...upd}; if(u.stage) u.stage_changed_on = today();
+      Object.assign(CALL_LEAD, u);
+      const inList = LEADS.find(l => l.id === CALL_LEAD.id);
+      if(inList && inList !== CALL_LEAD) Object.assign(inList, u);
+      cacheSave();
+    }
+    $("callbox").hidden = true;
+    redraw();
+    if(PANNA && PANNA.id === CALL_LEAD.id) openPanna(PANNA.id);
+  };
+
+  $("c_save").disabled = true; $("c_save").textContent = "सहेज रहे हैं…";
+  try{
+    try{
+      await apiRetry("/rest/v1/calls",{method:"POST",
+        headers:{Prefer:"return=minimal"}, body: JSON.stringify(body)});
+    }catch(e1){
+      if(networkWaali(e1)) throw e1;
+      if(!/direction/i.test(e1.message)) throw e1;   // direction column मानी नहीं — उसके बिना दोबारा
+      delete body.direction;
+      await apiRetry("/rest/v1/calls",{method:"POST",
+        headers:{Prefer:"return=minimal"}, body: JSON.stringify(body)});
+    }
+    if(Object.keys(upd).length)
+      await apiRetry(`/rest/v1/leads?id=eq.${CALL_LEAD.id}`,{method:"PATCH",
+        headers:{Prefer:"return=minimal"}, body: JSON.stringify(upd)});
+    leadBaad();
+    say("msg", `${CALL_LEAD.name} की call चढ़ गई`, "ok"); setTimeout(()=>say("msg",""),2500);
+  }catch(e){
+    if(!networkWaali(e)) { say("c_msg","सहेजा नहीं गया — " + e.message); }
+    else {
+      // network नहीं है — call फ़ोन में रख लीजिए, बाद में अपने-आप चली जाएगी
+      const reqs = [{ path:"/rest/v1/calls", method:"POST", body }];
+      if(Object.keys(upd).length)
+        reqs.push({ path:`/rest/v1/leads?id=eq.${CALL_LEAD.id}`, method:"PATCH", body: upd });
+      qAdd({ at: Date.now(), naam: CALL_LEAD.name || "", reqs });
+      leadBaad();
+      say("msg", `📴 network नहीं है — ${CALL_LEAD.name} की call फ़ोन में रख ली, बाद में चली जाएगी`, "ok");
+      setTimeout(()=>say("msg",""), 4000);
+    }
+  }
+  finally{ $("c_save").disabled=false; $("c_save").textContent="सहेजिए"; }
+};
+
+async function markNotCustomer(){
+  const note = $("c_notes").value.trim();
+  const upd = { not_a_customer: true };
+  if(note) upd.notes = (CALL_LEAD.notes ? CALL_LEAD.notes + " | " : "") + note;
+  $("c_save").disabled = true; $("c_save").textContent = "हटा रहे हैं…";
+  try{
+    await apiRetry(`/rest/v1/leads?id=eq.${CALL_LEAD.id}`,{method:"PATCH",
+      headers:{Prefer:"return=minimal"}, body: JSON.stringify(upd)});
+    Object.assign(CALL_LEAD, upd);
+    $("callbox").hidden = true;
+    redraw();
+    say("msg", `${CALL_LEAD.name} को सूची से हटा दिया — "ग्राहक नहीं"`, "ok");
+    setTimeout(()=>say("msg",""),3000);
+  }catch(e){
+    say("c_msg", /not_a_customer/.test(e.message)
+      ? "पहले Supabase में वह एक line वाली SQL चला दीजिए (not_a_customer खाना अभी बना नहीं है)"
+      : "हुआ नहीं — " + e.message);
+  }
+  finally{ $("c_save").disabled=false; ncToggle(); }
+}
+
+async function changeStage(id,stage){
+  try{
+    await apiRetry(`/rest/v1/leads?id=eq.${id}`,{method:"PATCH",
+      headers:{Prefer:"return=minimal"},body:JSON.stringify({stage})});
+    const l=LEADS.find(x=>x.id===id); if(l){ l.stage=stage; l.stage_changed_on=today(); }
+    redraw();                       // ताकि "नहीं हिली" वाला निशान तुरंत हट जाए
+    say("msg",`Stage बदल गया — ${S[stage]}`,"ok"); setTimeout(()=>say("msg",""),2500);
+  }catch(e){ say("msg","Stage नहीं बदला — "+e.message); loadLeads(); }
+}
+["q","f_stage","f_bill","f_int","f_nodate","f_show_nc","f_today","f_stale","f_assign"]
+  .forEach(i=>$(i).addEventListener("input",render));
+["q2","f_pstatus","f_fin"].forEach(i=>$(i).addEventListener("input",renderStuck));
+["q3","f_ptype","f_amc"].forEach(i=>$(i).addEventListener("input",renderLive));
+
+$("b_new").onclick = () => { $("form").hidden=false; say("f_msg",""); $("f_name").focus(); };
+$("f_cancel").onclick = () => $("form").hidden=true;
+$("f_save").onclick = async () => {
+  const name=$("f_name").value.trim(), phone=$("f_phone").value.trim();
+  if(!name) return say("f_msg","नाम भरिए");
+  if(!phone) return say("f_msg","Phone भरिए");
+  if(ME.role==="staff" && !$("f_source").value)
+    return say("f_msg","“कहाँ से आई” चुनना ज़रूरी है — दुकान पर आए या किसी ने भेजा");
+  const num=v=>{const n=parseFloat(String(v).replace(/[^\d.]/g,""));return isNaN(n)?null:n;};
+  const body={ name, phone,
+    village:$("f_village").value.trim()||null, district:$("f_district").value.trim()||null,
+    monthly_bill:num($("f_bill_amt").value), bill_band:$("f_band").value||null,
+    connection_use:$("f_use").value||null, kw_required:num($("f_kw").value),
+    source:$("f_source").value||null, interest:$("f_interest").value||null,
+    stage:$("f_stg").value||"new", notes:$("f_notes").value.trim()||null };
+  if(ME.role==="staff"){ body.stage = "new"; body.assigned_uid = ME.uid; }
+  // नया ग्राहक = आज का काम। इससे वह "आज की calls" में दिखेगा
+  // और पहले ही दिन "भूली हुई" सूची में नहीं जाएगा।
+  body.next_action_on = today();
+  Object.keys(body).forEach(k=>body[k]===null&&delete body[k]);
+  $("f_save").disabled=true; $("f_save").textContent="सहेज रहे हैं…";
+  try{
+    const out=await apiRetry("/rest/v1/leads",{method:"POST",
+      headers:{Prefer:"return=representation"},body:JSON.stringify(body)});
+    LEADS.unshift(Array.isArray(out)?out[0]:out);
+    $("form").hidden=true;
+    ["f_name","f_phone","f_village","f_district","f_bill_amt","f_kw","f_notes"].forEach(i=>$(i).value="");
+    redraw(); say("msg",`${name} जुड़ गए`,"ok"); setTimeout(()=>say("msg",""),2500);
+  }catch(e){
+    say("f_msg", /duplicate|unique/i.test(e.message)
+      ? "यह phone पहले से किसी lead पर है" : "सहेजा नहीं गया — "+e.message);
+  }finally{ $("f_save").disabled=false; $("f_save").textContent="सहेजिए"; }
+};
+
+if(!URL_||!KEY) show("setup");
+else if(!TOK){ show("login"); $("l_email").value=EMAIL; }
+else start();
+</script>
+</html>
