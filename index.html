@@ -225,6 +225,7 @@
           <option value="warm">🙂 ठीक-ठाक</option>
           <option value="cold">❄️ ठंडा</option>
         </select>
+        <select id="f_camp" hidden></select>
         <select id="f_assign" hidden></select>
         <label class="chk"><input type="checkbox" id="f_today"> सिर्फ़ आज वाली</label>
         <label class="chk"><input type="checkbox" id="f_nodate"> 📅 बिना अगली तारीख़</label>
@@ -390,6 +391,10 @@
       <div><label>दिलचस्पी</label><select id="p_f_interest"></select></div>
       <div><label>अगला काम कब</label><input id="p_f_next" type="date"></div>
     </div>
+    <div class="grid2">
+      <div><label>कहाँ से आई</label><select id="p_f_source"></select></div>
+      <div><label>कौन सा ad / campaign</label><input id="p_f_campaign" placeholder="जैसे — दीवाली 3kW घोसी"></div>
+    </div>
     <label>Stage</label><select id="p_f_stage"></select>
     <label>Note</label><textarea id="p_f_notes" rows="3"></textarea>
     <div id="p_msg"></div>
@@ -549,6 +554,8 @@
       <div><label>कहाँ से आई</label><select id="f_source"></select></div>
       <div><label>दिलचस्पी</label><select id="f_interest"></select></div>
     </div>
+    <label>कौन सा ad / campaign</label>
+    <input id="f_campaign" placeholder="जैसे — दीवाली 3kW घोसी (Facebook से आई हो तो)">
     <div id="f_stgwrap"><label>Stage</label><select id="f_stg"></select></div>
     <label>Note</label><textarea id="f_notes" rows="2"></textarea>
     <div id="f_msg"></div>
@@ -712,6 +719,7 @@ async function start(){
   fill("c_outcome",OUTCOME); fill("c_interest",INTEREST,"— वही Cancel —");
   fill("v_pkind",PHOTOS);
   fill("p_f_use",USES,"—"); fill("p_f_interest",INTEREST,"—"); fill("p_f_stage",STAGES);
+  fill("p_f_source",SOURCES,"—");
   fill("p_f_pstatus", Object.entries(PSTATUS), "—");
   fill("v_roof", ROOFS, "—"); fill("v_phase", PHASES, "—");
   fill("p_f_ptype", PTYPES, "— चुनिए —"); fill("f_ptype", PTYPES, "किस तरह का — सब");
@@ -766,6 +774,7 @@ async function whoAmI(){
 /* सूची के लिए सिर्फ़ ये खाने — notes और पूरा पता पन्ना खुलने पर आते हैं।
    इससे हर बार उतरने वाला data लगभग आधा रह जाता है। */
 const LIST_COLS = ["id","name","phone","stage","bill_band","bill_bracket","village","district",
+  "source","campaign",
   "interest","kw_required","next_action_on","assigned_uid","not_a_customer","stage_changed_on",
   "portal_app_no","portal_status","days_stuck","subsidy_eligible","bill_lost","applied_on",
   "system_kw","project_type","commissioned_on","installed_kw","amc_due_on","system_note",
@@ -809,7 +818,23 @@ async function loadLeads(){
   }
 }
 
+/* कौन-कौन से ad के नाम अब तक डले हैं — उन्हीं का filter बनता है */
+let CAMPS = null;
+function campBhar(){
+  const list = [...new Set(LEADS.filter(l => l.campaign).map(l => l.campaign))].sort();
+  const sig = list.join("|");
+  if(sig === CAMPS) return;                 // कुछ बदला नहीं तो छेड़िए मत
+  CAMPS = sig;
+  const cur = $("f_camp").value;
+  $("f_camp").innerHTML = `<option value="">📣 ad — सब</option>` +
+    list.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+  $("f_camp").value = list.includes(cur) ? cur : "";
+  $("f_camp").hidden = list.length === 0;   // एक भी ad नहीं डला तो खाना छिपा रहे
+}
+
 function render(){
+  campBhar();
+  const camp = $("f_camp").value;
   const q=$("q").value.trim().toLowerCase(), st=$("f_stage").value, bb=$("f_bill").value;
   const showNC = $("f_show_nc").checked, onlyToday = $("f_today").checked;
   const onlyStale = $("f_stale").checked;
@@ -856,6 +881,7 @@ function render(){
     if(asg && asg !== "__none__" && l.assigned_uid !== asg) return false;
     if(st && l.stage!==st) return false;
     if(bb && (l.bill_band||l.bill_bracket)!==bb) return false;
+    if(camp && (l.campaign||"") !== camp) return false;
     if(!q) return true;
     return [l.name,l.phone,l.village,l.district].some(v=>String(v||"").toLowerCase().includes(q));
   });
@@ -1335,6 +1361,8 @@ function openPanna(id){
   $("p_f_use").value      = l.connection_use || "";
   $("p_f_kw").value       = l.kw_required ?? "";
   $("p_f_interest").value = l.interest || "";
+  $("p_f_source").value   = l.source || "";
+  $("p_f_campaign").value = l.campaign || "";
   $("p_f_next").value     = l.next_action_on || "";
   $("p_f_stage").value    = l.stage || "new";
   $("p_f_notes").value    = l.notes || "";
@@ -1357,6 +1385,8 @@ async function loadFull(l){
       $("p_f_notes").value = l.notes || "";
       $("p_f_bill").value  = l.monthly_bill ?? "";
       $("p_f_use").value   = l.connection_use || "";
+      $("p_f_source").value   = l.source || "";
+      $("p_f_campaign").value = l.campaign || "";
     }
   }catch(e){ /* न आए तो पन्ना फिर भी चलता रहेगा */ }
 }
@@ -1397,6 +1427,7 @@ $("p_save").onclick = async () => {
     full_address: txt($("p_f_addr").value), monthly_bill: num($("p_f_bill").value),
     bill_band: txt($("p_f_band").value), connection_use: txt($("p_f_use").value),
     kw_required: num($("p_f_kw").value), interest: txt($("p_f_interest").value),
+    source: txt($("p_f_source").value), campaign: txt($("p_f_campaign").value),
     next_action_on: txt($("p_f_next").value), stage: $("p_f_stage").value,
     notes: txt($("p_f_notes").value),
     project_type: txt($("p_f_ptype").value), commissioned_on: txt($("p_f_comm").value),
@@ -1946,7 +1977,7 @@ async function changeStage(id,stage){
     say("msg",`Stage बदल गया — ${S[stage]}`,"ok"); setTimeout(()=>say("msg",""),2500);
   }catch(e){ say("msg","Stage नहीं बदला — "+e.message); loadLeads(); }
 }
-["q","f_stage","f_bill","f_int","f_nodate","f_show_nc","f_today","f_stale","f_assign"]
+["q","f_stage","f_bill","f_int","f_camp","f_nodate","f_show_nc","f_today","f_stale","f_assign"]
   .forEach(i=>$(i).addEventListener("input",render));
 ["q2","f_pstatus","f_fin"].forEach(i=>$(i).addEventListener("input",renderStuck));
 ["q3","f_ptype","f_amc"].forEach(i=>$(i).addEventListener("input",renderLive));
@@ -1964,7 +1995,8 @@ $("f_save").onclick = async () => {
     village:$("f_village").value.trim()||null, district:$("f_district").value.trim()||null,
     monthly_bill:num($("f_bill_amt").value), bill_band:$("f_band").value||null,
     connection_use:$("f_use").value||null, kw_required:num($("f_kw").value),
-    source:$("f_source").value||null, interest:$("f_interest").value||null,
+    source:$("f_source").value||null, campaign:$("f_campaign").value.trim()||null,
+    interest:$("f_interest").value||null,
     stage:$("f_stg").value||"new", notes:$("f_notes").value.trim()||null };
   if(ME.role==="staff"){ body.stage = "new"; body.assigned_uid = ME.uid; }
   // नया ग्राहक = आज का काम। इससे वह "आज की calls" में दिखेगा
@@ -1977,7 +2009,7 @@ $("f_save").onclick = async () => {
       headers:{Prefer:"return=representation"},body:JSON.stringify(body)});
     LEADS.unshift(Array.isArray(out)?out[0]:out);
     $("form").hidden=true;
-    ["f_name","f_phone","f_village","f_district","f_bill_amt","f_kw","f_notes"].forEach(i=>$(i).value="");
+    ["f_name","f_phone","f_village","f_district","f_bill_amt","f_kw","f_notes","f_campaign"].forEach(i=>$(i).value="");
     redraw(); say("msg",`${name} जुड़ गए`,"ok"); setTimeout(()=>say("msg",""),2500);
   }catch(e){
     say("f_msg", /duplicate|unique/i.test(e.message)
