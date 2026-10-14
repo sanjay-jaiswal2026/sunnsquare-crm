@@ -169,11 +169,13 @@
 <div id="setup" class="wrap" hidden>
   <div class="card">
     <h2>पहली बार — जोड़ना है</h2>
-    <p class="hint">यह सिर्फ़ एक बार। आपके browser में सहेज लिया जाएगा।</p>
+    <p class="hint">यह सिर्फ़ एक बार। आपके browser में save हो जाएगा।</p>
     <label>Supabase Project URL</label><input id="s_url" spellcheck="false">
     <label>Publishable key</label><input id="s_key" spellcheck="false">
+    <label>Quotation app का पता <span class="hint">— SunLedger, जहाँ quotation बनता है</span></label>
+    <input id="s_ledger" spellcheck="false" placeholder="https://…">
     <div id="s_msg"></div>
-    <div class="modal-actions"><button class="btn" id="s_save">सहेजिए</button></div>
+    <div class="modal-actions"><button class="btn" id="s_save">Save कीजिए</button></div>
   </div>
 </div>
 
@@ -184,9 +186,9 @@
     <label>Email</label><input id="l_email" type="email" autocomplete="username">
     <label>Password</label><input id="l_pass" type="password" autocomplete="current-password">
     <div id="l_msg"></div>
-    <div class="modal-actions"><button class="btn" id="l_go">अंदर जाइए</button></div>
+    <div class="modal-actions"><button class="btn" id="l_go">Login कीजिए</button></div>
     <p class="hint" style="margin-top:14px">
-      <button class="linkbtn" style="color:var(--muted)" id="l_reset">जोड़ने की सेटिंग बदलिए</button>
+      <button class="linkbtn" style="color:var(--muted)" id="l_reset">Setting बदलिए</button>
     </p>
   </div>
 </div>
@@ -298,7 +300,7 @@
           <option value="7" selected>पिछले 7 दिन</option>
           <option value="30">पिछले 30 दिन</option>
         </select>
-        <button class="btn-ghost btn" id="w_refresh" style="flex:1;min-width:130px">↻ ताज़ा कीजिए</button>
+        <button class="btn-ghost btn" id="w_refresh" style="flex:1;min-width:130px">↻ Refresh</button>
       </div>
       <div class="strip" id="strip4"></div>
       <div id="list4"></div>
@@ -322,7 +324,9 @@
       <a class="btn act" id="p_tel" href="#">📞 फ़ोन लगाइए</a>
       <a class="btn-ghost btn act" id="p_wa" href="#" target="_blank" rel="noopener">WhatsApp</a>
       <button class="btn-ghost btn act" id="p_call">📞 call चढ़ाइए</button>
+      <button class="btn-ghost btn act" id="p_quote">📄 Quotation बनाइए</button>
     </div>
+    <div id="p_qmsg" class="hint" hidden></div>
 
     <div id="p_portal" class="pbox" hidden></div>
 
@@ -390,15 +394,15 @@
     <label>Note</label><textarea id="p_f_notes" rows="3"></textarea>
     <div id="p_msg"></div>
     <div class="modal-actions">
-      <button class="btn" id="p_save">बदलाव सहेजिए</button>
+      <button class="btn" id="p_save">बदलाव Save कीजिए</button>
     </div>
 
     <h3 class="ph">🏠 Site visit <span id="p_vcount" class="sub2"></span>
       <button class="btn mini" id="p_newvisit">+ नया site visit</button></h3>
-    <div id="p_visits"><div class="empty">ला रहे हैं…</div></div>
+    <div id="p_visits"><div class="empty">आ रहा है…</div></div>
 
     <h3 class="ph">Call का इतिहास <span id="p_ccount" class="sub2"></span></h3>
-    <div id="p_calls"><div class="empty">ला रहे हैं…</div></div>
+    <div id="p_calls"><div class="empty">आ रहा है…</div></div>
   </div>
 </div>
 
@@ -482,7 +486,7 @@
     <label>Note</label><textarea id="v_notes" rows="3"></textarea>
 
     <h3 class="ph2">📷 फ़ोटो</h3>
-    <div id="v_pnote" class="hint">पहले ऊपर वाली visit सहेजिए — उसके बाद फ़ोटो जोड़ सकेंगे।</div>
+    <div id="v_pnote" class="hint">पहले ऊपर वाली visit Save कीजिए — उसके बाद फ़ोटो जोड़ सकेंगे।</div>
     <div id="v_pbox" hidden>
       <div class="tools">
         <select id="v_pkind"></select>
@@ -496,8 +500,8 @@
 
     <div id="v_msg"></div>
     <div class="modal-actions">
-      <button class="btn-ghost btn" id="v_cancel">रहने दीजिए</button>
-      <button class="btn" id="v_save">सहेजिए</button>
+      <button class="btn-ghost btn" id="v_cancel">Cancel</button>
+      <button class="btn" id="v_save">Save कीजिए</button>
     </div>
   </div>
 </div>
@@ -514,8 +518,8 @@
     <label>किसने call की</label><input id="c_staff" placeholder="अपना नाम">
     <div id="c_msg"></div>
     <div class="modal-actions">
-      <button class="btn-ghost btn" id="c_cancel">रहने दीजिए</button>
-      <button class="btn" id="c_save">सहेजिए</button>
+      <button class="btn-ghost btn" id="c_cancel">Cancel</button>
+      <button class="btn" id="c_save">Save कीजिए</button>
     </div>
   </div>
 </div>
@@ -549,8 +553,8 @@
     <label>Note</label><textarea id="f_notes" rows="2"></textarea>
     <div id="f_msg"></div>
     <div class="modal-actions">
-      <button class="btn-ghost btn" id="f_cancel">रहने दीजिए</button>
-      <button class="btn" id="f_save">सहेजिए</button>
+      <button class="btn-ghost btn" id="f_cancel">Cancel</button>
+      <button class="btn" id="f_save">Save कीजिए</button>
     </div>
   </div>
 </div>
@@ -619,6 +623,7 @@ function load(k){ try{ return localStorage.getItem(k); }catch(e){ return null; }
 
 let URL_ = load("ss_url") || DEF_URL;
 let KEY  = load("ss_key") || DEF_KEY;
+let LEDGER = load("ss_ledger") || "";   // SunLedger — quotation बनाने वाला app
 let TOK  = load("ss_tok") || "";
 let RTOK = load("ss_rtok") || "";
 let EMAIL= load("ss_email") || "";
@@ -657,10 +662,13 @@ $("s_save").onclick = () => {
   if(!u.startsWith("http")) return say("s_msg","URL https:// से शुरू होना चाहिए");
   if(k.length<20) return say("s_msg","key पूरी नहीं लग रही");
   URL_=u; KEY=k; store("ss_url",u); store("ss_key",k);
+  LEDGER = $("s_ledger").value.trim().replace(/\/+$/,"");
+  store("ss_ledger", LEDGER);
   say("s_msg",""); show("login"); $("l_email").value=EMAIL;
 };
-$("l_reset").onclick = () => { show("setup"); $("s_url").value=URL_; $("s_key").value=KEY; };
-$("s_url").value = URL_; $("s_key").value = KEY;
+$("l_reset").onclick = () => { show("setup");
+  $("s_url").value=URL_; $("s_key").value=KEY; $("s_ledger").value=LEDGER; };
+$("s_url").value = URL_; $("s_key").value = KEY; $("s_ledger").value = LEDGER;
 
 $("l_go").onclick = async () => {
   const email=$("l_email").value.trim(), pass=$("l_pass").value;
@@ -676,7 +684,7 @@ $("l_go").onclick = async () => {
     store("ss_tok",TOK); store("ss_rtok",RTOK); store("ss_email",email);
     $("l_pass").value=""; start();
   }catch(e){ say("l_msg",e.message); }
-  finally{ $("l_go").disabled=false; $("l_go").textContent="अंदर जाइए"; }
+  finally{ $("l_go").disabled=false; $("l_go").textContent="Login कीजिए"; }
 };
 function logout(){ TOK="";RTOK=""; store("ss_tok",null); store("ss_rtok",null);
   show("login"); $("l_email").value=EMAIL; }
@@ -701,7 +709,7 @@ async function start(){
   show("app"); $("who").textContent = EMAIL;
   fill("f_stage",STAGES,"Stage — सब"); fill("f_stg",STAGES);
   fill("f_source",SOURCES,"—"); fill("f_use",USES,"—"); fill("f_interest",INTEREST,"—");
-  fill("c_outcome",OUTCOME); fill("c_interest",INTEREST,"— वही रहने दीजिए —");
+  fill("c_outcome",OUTCOME); fill("c_interest",INTEREST,"— वही Cancel —");
   fill("v_pkind",PHOTOS);
   fill("p_f_use",USES,"—"); fill("p_f_interest",INTEREST,"—"); fill("p_f_stage",STAGES);
   fill("p_f_pstatus", Object.entries(PSTATUS), "—");
@@ -749,11 +757,11 @@ async function whoAmI(){
   if(staffMode){ $("f_today").checked = true; $("h1t").textContent = "आज की calls"; }
   if(isMalik()){
     fill("f_assign", [["__none__","किसी को नहीं सौंपी"], ...STAFF.map(s=>[s.user_id,s.name])], "किसको सौंपा — सब");
-    fill("a_who", STAFF.map(s=>[s.user_id,s.name]), STAFF.length?null:"— कोई staff दर्ज नहीं —");
+    fill("a_who", STAFF.map(s=>[s.user_id,s.name]), STAFF.length?null:"— कोई staff नहीं जुड़ा —");
     $("a_date").value = today();
   }
   if(ME.role === "none")
-    say("msg","आपका नाम crm_users में दर्ज नहीं है — इसीलिए कुछ नहीं दिख रहा। staff-login वाली SQL चलाइए।");
+    say("msg","आपका नाम crm_users में नहीं जुड़ा है — इसीलिए कुछ नहीं दिख रहा। staff-login वाली SQL चलाइए।");
 }
 /* सूची के लिए सिर्फ़ ये खाने — notes और पूरा पता पन्ना खुलने पर आते हैं।
    इससे हर बार उतरने वाला data लगभग आधा रह जाता है। */
@@ -783,9 +791,9 @@ async function loadLeads(){
     $("t_stuck").textContent =
       `🔴 अटकी applications (${LEADS.filter(l=>l.portal_app_no && !isDone(l)).length})`;
     setTab(TAB);
-    say("msg", "पिछली बार की सूची दिख रही है — नई ला रहे हैं…", "ok");
+    say("msg", "पिछली बार की सूची दिख रही है — नई आ रहा है…", "ok");
   } else if(!LEADS.length){
-    $("list").innerHTML = `<div class="empty">ला रहे हैं…</div>`;
+    $("list").innerHTML = `<div class="empty">आ रहा है…</div>`;
   }
   // 2. अब ताज़ा सूची मँगाइए
   try{
@@ -950,7 +958,7 @@ $("hotbar").onclick = () => {
 $("a_clear").onclick = () => { PICKED.clear(); render(); };
 $("a_go").onclick = async () => {
   const who = $("a_who").value, dt = $("a_date").value || today();
-  if(!who) return say("msg","पहले staff चुनिए — अभी कोई staff दर्ज नहीं है");
+  if(!who) return say("msg","पहले staff चुनिए — अभी कोई staff नहीं जुड़ा है");
   if(!PICKED.size) return;
   const ids = [...PICKED], parts = baantiye(ids);
   $("a_go").disabled = true; $("a_go").textContent = "सौंप रहे हैं…";
@@ -1056,7 +1064,7 @@ function renderLive(){
   $("count3").textContent = `${rows.length} दिख रहे हैं · सबसे नया सबसे ऊपर`;
   if(!rows.length){ $("list3").innerHTML =
     `<div class="empty">${all.length ? "कोई नहीं मिला।" :
-      "अभी एक भी चालू सिस्टम दर्ज नहीं है। किसी lead का पन्ना खोलकर “⚡ यह सिस्टम चालू हो गया” दबाइए।"}</div>`;
+      "अभी एक भी चालू सिस्टम नहीं भरा। किसी lead का पन्ना खोलकर “⚡ यह सिस्टम चालू हो गया” दबाइए।"}</div>`;
     return; }
   $("list3").innerHTML = rows.map(l=>{
     const d = daysTo(l.amc_due_on);
@@ -1185,7 +1193,7 @@ function renderWork(){
      <div><div class="k">🏠 Site visits</div><div class="v">${T.visits}</div></div>
      <div><div class="k">🆕 नई leads लाईं</div><div class="v">${T.made}</div></div>`;
 
-  if(!all.length){ $("list4").innerHTML = `<div class="empty">अभी कोई दर्ज ही नहीं है।</div>`; return; }
+  if(!all.length){ $("list4").innerHTML = `<div class="empty">अभी कोई नाम ही नहीं है।</div>`; return; }
 
   $("list4").innerHTML = all.map(r=>{
     const kuchNahi = r.calls === 0 && r.visits === 0 && r.made === 0;
@@ -1263,6 +1271,7 @@ function openPanna(id){
     slept !== null ? `<b style="color:#92400e">🕐 ${slept} दिन से नहीं हिली</b>` : ""
   ].filter(Boolean).join(" · ");
 
+  $("p_qmsg").hidden = true;
   $("p_tel").href = l.phone ? "tel:"+telHref(l.phone) : "#";
   $("p_wa").href  = l.phone ? "https://wa.me/"+waNo(l.phone) : "#";
 
@@ -1355,7 +1364,7 @@ $("p_close").onclick = () => { $("panna").hidden = true; PANNA = null; };
 $("p_call").onclick  = () => { if(PANNA) openCall(PANNA.id); };
 
 async function loadCalls(id){
-  $("p_calls").innerHTML = `<div class="empty">ला रहे हैं…</div>`;
+  $("p_calls").innerHTML = `<div class="empty">आ रहा है…</div>`;
   $("p_ccount").textContent = "";
   try{
     const rows = await apiRetry(
@@ -1406,16 +1415,16 @@ $("p_save").onclick = async () => {
     body.subsidy_eligible = num($("p_f_sub").value);
     body.bill_lost        = num($("p_f_loss").value);
   }
-  $("p_save").disabled = true; $("p_save").textContent = "सहेज रहे हैं…";
+  $("p_save").disabled = true; $("p_save").textContent = "Save हो रहा है…";
   try{
     await apiRetry(`/rest/v1/leads?id=eq.${PANNA.id}`,{method:"PATCH",
       headers:{Prefer:"return=representation"}, body: JSON.stringify(body)})
       .then(r => { if(Array.isArray(r) && r[0]) Object.assign(PANNA, r[0]); else Object.assign(PANNA, body); });
     openPanna(PANNA.id);
     redraw();
-    say("p_msg","सहेज दिया","ok"); setTimeout(()=>say("p_msg",""),2500);
-  }catch(e){ say("p_msg","सहेजा नहीं गया — "+e.message); }
-  finally{ $("p_save").disabled=false; $("p_save").textContent="बदलाव सहेजिए"; }
+    say("p_msg","Save हो गया","ok"); setTimeout(()=>say("p_msg",""),2500);
+  }catch(e){ say("p_msg","Save नहीं हुआ — "+e.message); }
+  finally{ $("p_save").disabled=false; $("p_save").textContent="बदलाव Save कीजिए"; }
 };
 
 /* "⚡ यह सिस्टम चालू हो गया" — तारीख़, stage और AMC एक साथ */
@@ -1486,6 +1495,56 @@ const VNUM = ["estimated_kw","gps_lat","gps_lng","floors","height_ft","roof_leng
 const VBOOL = { vehicle_access:"v_vehicle", shadow_issue:"v_shadow",
                 elevated_structure:"v_elev", la_required:"v_la" };
 
+/* ---------- 📄 Quotation — SunLedger के लिए जानकारी ---------- */
+function quoteText(l){
+  const pankti = [
+    ["नाम",        l.name],
+    ["Phone",      tel10(l.phone) || l.phone],
+    ["गाँव/मोहल्ला", l.village],
+    ["ज़िला",       l.district],
+    ["पूरा पता",    l.full_address],
+    ["कितने kW",   l.kw_required || l.system_kw],
+    ["महीने का बिल", l.monthly_bill ? "₹" + l.monthly_bill : (l.bill_band || l.bill_bracket)],
+    ["कहाँ लगेगा",  (USES.find(u=>u[0]===l.connection_use)||[])[1]],
+    ["उपभोक्ता नं.", l.consumer_number],
+  ].filter(x => x[1]);
+  return pankti.map(x => x[0] + ": " + x[1]).join("\n");
+}
+
+async function copyKaro(txt){
+  try{
+    if(navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(txt); return true;
+    }
+  }catch(e){}
+  try{                                        // पुराने browser के लिए
+    const t = document.createElement("textarea");
+    t.value = txt; t.style.position = "fixed"; t.style.opacity = "0";
+    document.body.appendChild(t); t.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(t); return ok;
+  }catch(e){ return false; }
+}
+
+$("p_quote").onclick = async () => {
+  if(!PANNA) return;
+  const txt = quoteText(PANNA);
+  const copied = await copyKaro(txt);
+  const box = $("p_qmsg"); box.hidden = false;
+  if(!LEDGER){
+    box.innerHTML = (copied ? "✅ ग्राहक की जानकारी copy हो गई।<br>" : "")
+      + "Quotation app का पता अभी भरा नहीं है — “बाहर” दबाकर “Setting बदलिए” में "
+      + "SunLedger का पता एक बार डाल दीजिए, फिर यह बटन उसे सीधे खोल देगा."
+      + "<br><br><b>जानकारी:</b><br>" + esc(txt).replace(/\n/g,"<br>");
+    return;
+  }
+  box.innerHTML = (copied
+      ? "✅ ग्राहक की जानकारी copy हो गई — SunLedger में चिपका दीजिए।"
+      : "⚠️ copy नहीं हो पाई — नीचे से हाथ से ले लीजिए।")
+    + "<br><b>जानकारी:</b><br>" + esc(txt).replace(/\n/g,"<br>");
+  window.open(LEDGER, "_blank", "noopener");
+};
+
 /* ---------- 📴 बिना network का काम — क़तार ---------- */
 /* network न मिले तो call यहीं फ़ोन में रुक जाती है और बाद में अपने-आप चली जाती है */
 const QKEY = "ss_queue";
@@ -1530,7 +1589,7 @@ async function qBhejo(dikhao){
           headers:{ Prefer:"return=minimal" }, body: JSON.stringify(r.body) });
       item.done = true; gaya++;
     }catch(e){
-      if(networkWaali(e)){ ruka++; break; }          // network नहीं है — बाक़ी रहने दीजिए
+      if(networkWaali(e)){ ruka++; break; }          // network नहीं है — बाक़ी Cancel
       item.error = e.message || "गड़बड़";             // असली गड़बड़ — निशान लगाकर आगे बढ़िए
     }
   }
@@ -1587,7 +1646,7 @@ async function photoChadhao(file, kind){
 async function loadPhotos(){
   if(!VISIT){ $("v_pbox").hidden = true; $("v_pnote").hidden = false; return; }
   $("v_pbox").hidden = false; $("v_pnote").hidden = true;
-  $("v_plist").innerHTML = `<div class="empty">ला रहे हैं…</div>`;
+  $("v_plist").innerHTML = `<div class="empty">आ रहा है…</div>`;
   try{
     const rows = await apiRetry(`/rest/v1/site_visit_photos?site_visit_id=eq.${VISIT.id}`
       + `&select=id,kind,storage_path,caption,created_at&order=created_at`) || [];
@@ -1597,12 +1656,12 @@ async function loadPhotos(){
       `<div class="ptile" data-id="${p.id}" data-path="${esc(p.storage_path)}">
          <button class="ph" type="button">👁️ देखिए</button>
          <div class="pk"><span>${esc(K[p.kind] || p.kind || "—")}</span>
-           ${isMalik() ? `<button type="button" class="pdel">मिटाइए</button>` : ""}</div>
+           ${isMalik() ? `<button type="button" class="pdel">Delete</button>` : ""}</div>
        </div>`).join("") + `</div>
        <div class="hint">फ़ोटो तभी उतरेगी जब आप “देखिए” दबाएँगे — इससे data बचता है।</div>`;
 
     document.querySelectorAll("#v_plist .ptile .ph").forEach(b => b.onclick = async () => {
-      const t = b.closest(".ptile"); b.textContent = "ला रहे हैं…";
+      const t = b.closest(".ptile"); b.textContent = "आ रहा है…";
       try{
         const r = await fetch(URL_.replace(/\/+$/,"")
           + `/storage/v1/object/authenticated/${BUCKET}/${t.dataset.path}`, { headers: stHdr() });
@@ -1614,14 +1673,14 @@ async function loadPhotos(){
     document.querySelectorAll("#v_plist .pdel").forEach(b => b.onclick = async () => {
       const t = b.closest(".ptile");
       if(!confirm("यह फ़ोटो मिटा दें? वापस नहीं आएगी।")) return;
-      b.disabled = true; b.textContent = "मिटा रहे हैं…";
+      b.disabled = true; b.textContent = "Delete हो रहा है…";
       try{
         await fetch(URL_.replace(/\/+$/,"") + `/storage/v1/object/${BUCKET}/${t.dataset.path}`,
           { method:"DELETE", headers: stHdr() });
         await apiRetry(`/rest/v1/site_visit_photos?id=eq.${t.dataset.id}`,
           { method:"DELETE", headers:{ Prefer:"return=minimal" } });
         loadPhotos();
-      }catch(e){ b.disabled = false; b.textContent = "मिटी नहीं"; }
+      }catch(e){ b.disabled = false; b.textContent = "Delete नहीं हुई"; }
     });
   }catch(e){ $("v_plist").innerHTML = `<div class="empty">नहीं आईं — ${esc(e.message)}</div>`; }
 }
@@ -1647,14 +1706,14 @@ $("v_pfile").addEventListener("change", async e => {
 });
 
 async function loadVisits(leadId){
-  $("p_visits").innerHTML = `<div class="empty">ला रहे हैं…</div>`;
+  $("p_visits").innerHTML = `<div class="empty">आ रहा है…</div>`;
   $("p_vcount").textContent = "";
   try{
     const rows = await apiRetry(
       `/rest/v1/site_visits?lead_id=eq.${leadId}&select=*&order=visit_date.desc`) || [];
     $("p_vcount").textContent = rows.length ? `— ${rows.length}` : "";
     if(!rows.length){
-      $("p_visits").innerHTML = `<div class="empty">अभी कोई site visit दर्ज नहीं।</div>`; return;
+      $("p_visits").innerHTML = `<div class="empty">अभी कोई site visit नहीं भरी।</div>`; return;
     }
     // किस visit पर कितनी फ़ोटो — एक ही बार में
     const pc = {};
@@ -1700,7 +1759,7 @@ function openVisit(v){
     $("v_ekw").value  = PANNA.kw_required ?? "";
   }
   say("v_msg",""); say("v_pmsg",""); $("v_plist").innerHTML = "";
-  $("v_cancel").textContent = "रहने दीजिए";
+  $("v_cancel").textContent = "Cancel";
   loadPhotos();
   $("visitbox").hidden = false; $("visitbox").scrollTop = 0;
 }
@@ -1729,7 +1788,7 @@ $("v_save").onclick = async () => {
   for(const [col, el] of Object.entries(VBOOL)) body[col] = u3($(el).value);
   if($("v_by").value.trim()) store("ss_staff", $("v_by").value.trim());
 
-  $("v_save").disabled = true; $("v_save").textContent = "सहेज रहे हैं…";
+  $("v_save").disabled = true; $("v_save").textContent = "Save हो रहा है…";
   let NAYI = null;
   try{
     if(VISIT)
@@ -1757,14 +1816,14 @@ $("v_save").onclick = async () => {
       VISIT = NAYI;
       $("v_title").textContent = "Site visit बदलिए — " + (VISIT_LEAD.name || "");
       $("v_cancel").textContent = "बंद कीजिए";
-      say("v_msg","✅ सहेज दी — अब नीचे 📷 फ़ोटो जोड़ सकते हैं","ok");
+      say("v_msg","✅ Save हो गई — अब नीचे 📷 फ़ोटो जोड़ सकते हैं","ok");
       loadPhotos(); $("visitbox").scrollTop = $("visitbox").scrollHeight;
     } else {
       $("visitbox").hidden = true; VISIT = null;
-      say("p_msg","Site visit सहेज दी","ok"); setTimeout(()=>say("p_msg",""),2500);
+      say("p_msg","Site visit Save हो गई","ok"); setTimeout(()=>say("p_msg",""),2500);
     }
-  }catch(e){ say("v_msg","सहेजी नहीं गई — "+e.message); }
-  finally{ $("v_save").disabled=false; $("v_save").textContent="सहेजिए"; }
+  }catch(e){ say("v_msg","Save नहीं हुई — "+e.message); }
+  finally{ $("v_save").disabled=false; $("v_save").textContent="Save कीजिए"; }
 };
 
 /* ---------- call log ---------- */
@@ -1786,7 +1845,7 @@ function openCall(id){
 function ncToggle(){
   const off = $("c_nc").checked;
   ["c_outcome","c_interest","c_next","c_staff"].forEach(i=>{ $(i).disabled = off; });
-  $("c_save").textContent = off ? "ग्राहक नहीं — हटा दीजिए" : "सहेजिए";
+  $("c_save").textContent = off ? "ग्राहक नहीं — हटा दीजिए" : "Save कीजिए";
 }
 $("c_nc").onchange = ncToggle;
 $("c_cancel").onclick = () => $("callbox").hidden = true;
@@ -1824,7 +1883,7 @@ $("c_save").onclick = async () => {
     if(PANNA && PANNA.id === CALL_LEAD.id) openPanna(PANNA.id);
   };
 
-  $("c_save").disabled = true; $("c_save").textContent = "सहेज रहे हैं…";
+  $("c_save").disabled = true; $("c_save").textContent = "Save हो रहा है…";
   try{
     try{
       await apiRetry("/rest/v1/calls",{method:"POST",
@@ -1842,7 +1901,7 @@ $("c_save").onclick = async () => {
     leadBaad();
     say("msg", `${CALL_LEAD.name} की call चढ़ गई`, "ok"); setTimeout(()=>say("msg",""),2500);
   }catch(e){
-    if(!networkWaali(e)) { say("c_msg","सहेजा नहीं गया — " + e.message); }
+    if(!networkWaali(e)) { say("c_msg","Save नहीं हुआ — " + e.message); }
     else {
       // network नहीं है — call फ़ोन में रख लीजिए, बाद में अपने-आप चली जाएगी
       const reqs = [{ path:"/rest/v1/calls", method:"POST", body }];
@@ -1854,7 +1913,7 @@ $("c_save").onclick = async () => {
       setTimeout(()=>say("msg",""), 4000);
     }
   }
-  finally{ $("c_save").disabled=false; $("c_save").textContent="सहेजिए"; }
+  finally{ $("c_save").disabled=false; $("c_save").textContent="Save कीजिए"; }
 };
 
 async function markNotCustomer(){
@@ -1912,7 +1971,7 @@ $("f_save").onclick = async () => {
   // और पहले ही दिन "भूली हुई" सूची में नहीं जाएगा।
   body.next_action_on = today();
   Object.keys(body).forEach(k=>body[k]===null&&delete body[k]);
-  $("f_save").disabled=true; $("f_save").textContent="सहेज रहे हैं…";
+  $("f_save").disabled=true; $("f_save").textContent="Save हो रहा है…";
   try{
     const out=await apiRetry("/rest/v1/leads",{method:"POST",
       headers:{Prefer:"return=representation"},body:JSON.stringify(body)});
@@ -1922,8 +1981,8 @@ $("f_save").onclick = async () => {
     redraw(); say("msg",`${name} जुड़ गए`,"ok"); setTimeout(()=>say("msg",""),2500);
   }catch(e){
     say("f_msg", /duplicate|unique/i.test(e.message)
-      ? "यह phone पहले से किसी lead पर है" : "सहेजा नहीं गया — "+e.message);
-  }finally{ $("f_save").disabled=false; $("f_save").textContent="सहेजिए"; }
+      ? "यह phone पहले से किसी lead पर है" : "Save नहीं हुआ — "+e.message);
+  }finally{ $("f_save").disabled=false; $("f_save").textContent="Save कीजिए"; }
 };
 
 if(!URL_||!KEY) show("setup");
