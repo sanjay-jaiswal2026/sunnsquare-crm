@@ -126,6 +126,30 @@
   .ptile .pk button{border:0;background:none;color:#b91c1c;font-size:12px;cursor:pointer;padding:0}
   .visitrow .kv{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap}
 
+  /* नीचे तैरती पट्टी — अँगूठे के पास, ताकि फ़ोन पर तुरंत दिखे */
+  .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));
+    transform:translate(-50%,120%);z-index:90;max-width:min(92vw,460px);
+    display:flex;gap:9px;align-items:flex-start;padding:13px 17px;border-radius:14px;
+    font-size:15px;font-weight:600;line-height:1.5;color:#fff;
+    box-shadow:0 10px 30px rgba(0,0,0,.28);opacity:0;pointer-events:none;
+    transition:transform .26s cubic-bezier(.2,.9,.3,1.2),opacity .2s}
+  .toast.on{transform:translate(-50%,0);opacity:1}
+  .toast .ti{font-size:17px;line-height:1.35}
+  .toast.ok{background:#15803d}
+  .toast.wait{background:#b45309}
+  .toast.bad{background:#b91c1c}
+  /* जो पंक्ति अभी बदली — एक पल की चमक */
+  @keyframes jh-ok{0%{background:#dcfce7;border-color:#15803d}100%{background:#fff}}
+  @keyframes jh-wait{0%{background:#fef3c7;border-color:#b45309}100%{background:#fff}}
+  .lead.jhalak-ok{animation:jh-ok 1.6s ease-out}
+  .lead.jhalak-wait{animation:jh-wait 1.6s ease-out}
+  /* Save का बटन — दबते ही बदले, ताकि पता चले कुछ हुआ */
+  .btn.saved{background:#15803d!important;color:#fff!important}
+  .btn.saving{opacity:.65}
+  @media (prefers-reduced-motion:reduce){
+    .toast{transition:none}
+    .lead.jhalak-ok,.lead.jhalak-wait{animation:none}
+  }
   .fold{border:1px solid var(--line);border-radius:var(--radius);margin:14px 0;background:#fff}
   .fold>summary{cursor:pointer;list-style:none;padding:13px 15px;font-weight:700;font-size:15px;
     display:flex;align-items:center;gap:8px;color:var(--ink)}
@@ -318,11 +342,12 @@
         <button class="btn-ghost btn" id="w_wa" style="flex:1;min-width:150px">📋 WhatsApp पर भेजिए</button>
       </div>
       <div class="wsum" id="w_line" hidden></div>
+      <div class="wsum" id="w_lost" hidden></div>
       <div class="strip" id="strip4"></div>
       <div id="list4"></div>
     </div>
 
-    <div id="msg"></div>
+    <div id="msg" hidden></div>
   </div>
 </div>
 
@@ -339,7 +364,7 @@
     <div class="pacts">
       <a class="btn act" id="p_tel" href="#">📞 फ़ोन लगाइए</a>
       <a class="btn-ghost btn act" id="p_wa" href="#" target="_blank" rel="noopener">WhatsApp</a>
-      <button class="btn-ghost btn act" id="p_call">📞 call चढ़ाइए</button>
+      <button class="btn-ghost btn act" id="p_call">📝 update कीजिए</button>
       <button class="btn-ghost btn act" id="p_quote">📄 Quotation बनाइए</button>
     </div>
     <div id="p_qmsg" class="hint" hidden></div>
@@ -532,9 +557,30 @@
   </div>
 </div>
 
+<div id="lostbox" class="ovl" hidden>
+  <div class="card">
+    <h2 id="lb_title">सौदा क्यों नहीं हुआ?</h2>
+    <p class="hint" style="margin:0 0 10px">
+      यह दर्ज रहेगा तो कुछ महीनों में पता चलेगा कि सौदे सबसे ज़्यादा किस वजह से टूटते हैं।</p>
+    <label>कारण *</label><select id="lb_reason"></select>
+    <label>और कुछ बताना हो</label>
+    <input id="lb_note" placeholder="छत नहीं है · किराए का मकान · पैसे का इंतज़ाम नहीं · बिल कम है">
+    <p class="hint" style="margin:6px 0 0">
+      कारण "और" हो तो यहाँ ज़रूर लिखिए — कुछ हफ़्तों में पता चलेगा कि कौन सी वजह
+      बार-बार आ रही है, और तभी उसे पक्के कारणों में जोड़ेंगे।</p>
+    <div id="lb_msg"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost btn" id="lb_cancel">रहने दीजिए</button>
+      <button class="btn" id="lb_save">Save कीजिए</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
 <div id="callbox" class="ovl" hidden>
   <div class="card">
-    <h2 id="c_title">Call चढ़ाइए</h2>
+    <h2 id="c_title">Update कीजिए</h2>
     <p class="hint">तीन चीज़ें भरिए, 10 सेकंड में।</p>
     <label class="chk nc" id="w_cnc"><input type="checkbox" id="c_nc"> यह ग्राहक ही नहीं — अपना आदमी / test / गलत entry</label>
     <label>1. Call का नतीजा *</label><select id="c_outcome"></select>
@@ -592,14 +638,25 @@ const DEF_URL = "https://ddjwszlijepejulcjmsx.supabase.co";
 const DEF_KEY = "sb_publishable_yqLA_8lAwOltbnq0rI_nyA_dhY7N2Qz";
 
 const STAGES = [
-  ["new","नई lead"],["no_answer","call नहीं लगी"],["contacted","बात हो गई"],
+  ["new","नई lead"],["no_answer","फ़ोन नहीं उठा"],["contacted","बात हो गई"],
   ["visit_scheduled","visit तय"],["visit_done","visit हो गया"],["quoted","quotation भेजा"],
   ["agreement_signed","Agreement हो गया"],
   ["advance_received","advance मिला"],
-  ["loan_applied","Loan की अर्ज़ी लगी"],["loan_approved","Loan मंज़ूर / पैसा आ गया"],
+  ["loan_applied","Loan apply किया"],["loan_approved","Loan approve हुआ"],
   ["material_dispatched","सामान भेज दिया"],
-  ["in_progress","काम चालू"],["commissioned","चालू हो गया"],
-  ["after_sales","AMC / सेवा"],["lost","हाथ से गया"]];
+  ["in_progress","काम चालू"],["commissioned","सिस्टम चालू हो गया"],
+  ["after_sales","AMC / service"],["lost","Opportunity lost"]];
+
+/* सौदा क्यों नहीं हुआ — तय कारण, ताकि बाद में गिनती हो सके */
+/* ये छह शब्द database के enum में पहले से तय हैं — इनके अलावा कुछ नहीं जा सकता */
+const LOST = [
+  ["price","दाम ज़्यादा लगा"],
+  ["competitor","दूसरे से करा लिया"],
+  ["not_interested","दिलचस्पी नहीं रही"],
+  ["postponed","अभी नहीं — बाद में"],
+  ["wrong_number","ग़लत नंबर / संपर्क नहीं हुआ"],
+  ["other","और — नीचे लिखिए"]];
+const LR = Object.fromEntries(LOST);
 /* जो stage ख़त्म मान लिए जाते हैं — इन पर अलार्म नहीं बजता */
 const SETTLED = ["lost","commissioned","after_sales"];
 const SOURCES = [["facebook","Facebook"],["instagram","Instagram"],["whatsapp","WhatsApp"],
@@ -643,7 +700,46 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const show = (...ids) => ["setup","login","app"].forEach(i => $(i).hidden = !ids.includes(i));
 const rs = n => n==null ? "" : "₹" + Number(n).toLocaleString("en-IN");
-function say(el,text,kind){ $(el).innerHTML = text ? `<div class="msg ${kind||"err"}">${esc(text)}</div>` : ""; }
+/* छोटी खिड़कियों के अंदर का संदेश — जहाँ का तहाँ दिखता है */
+function say(el,text,kind){
+  if(el === "msg") return toast(text, kind);     // बड़ा संदेश नीचे तैरती पट्टी में
+  $(el).innerHTML = text ? `<div class="msg ${kind||"err"}">${esc(text)}</div>` : "";
+}
+
+/* ---------- नीचे तैरती पट्टी ----------
+   हरा  = Supabase तक पहुँच गया
+   नारंगी = फ़ोन में रखा है, network आते ही जाएगा
+   लाल  = गड़बड़                                                        */
+let TOASTT = null;
+function toast(text, kind){
+  try{ return toastAsli(text, kind); }catch(e){ /* दिखने की बात है */ }
+}
+function toastAsli(text, kind){
+  const t = $("toast"); if(!t) return;
+  clearTimeout(TOASTT);
+  if(!text){ t.classList.remove("on"); return; }
+  const rang = kind === "ok" ? "ok" : kind === "wait" ? "wait" : "bad";
+  t.className = "toast " + rang + " on";
+  t.innerHTML = `<span class="ti">${rang==="ok"?"✅":rang==="wait"?"📴":"⚠️"}</span>`
+              + `<span>${esc(text)}</span>`;
+  TOASTT = setTimeout(() => t.classList.remove("on"), rang === "bad" ? 6000 : 3200);
+}
+
+/* जो पंक्ति अभी बदली, वह एक पल के लिए चमक जाए — आँख को पता चल जाता है */
+function jhalak(id, kind){
+  try{                                         // सजावट कभी save न तोड़े
+    let card = null;
+    document.querySelectorAll(".lead [data-id]").forEach(el => {
+      if(!card && el.dataset.id === String(id)) card = el.closest(".lead");
+    });
+    if(!card) return;
+    const c = kind === "wait" ? "jhalak-wait" : "jhalak-ok";
+    card.classList.remove("jhalak-ok","jhalak-wait");
+    void card.offsetWidth;                     // चमक दोबारा चलाने के लिए
+    card.classList.add(c);
+    setTimeout(() => card.classList.remove(c), 1600);
+  }catch(e){ /* दिखने की बात है, रुकने की नहीं */ }
+}
 function fill(sel,pairs,blank){ $(sel).innerHTML = (blank?`<option value="">${blank}</option>`:"") +
   pairs.map(([v,l])=>`<option value="${v}">${esc(l)}</option>`).join(""); }
 function store(k,v){ try{ v===null?localStorage.removeItem(k):localStorage.setItem(k,v); }catch(e){} }
@@ -740,7 +836,7 @@ async function start(){
   fill("c_outcome",OUTCOME); fill("c_interest",INTEREST,"— वही Cancel —");
   fill("v_pkind",PHOTOS);
   fill("p_f_use",USES,"—"); fill("p_f_interest",INTEREST,"—"); fill("p_f_stage",STAGES);
-  fill("p_f_source",SOURCES,"—");
+  fill("p_f_source",SOURCES,"—"); fill("lb_reason",LOST,"— चुनिए —");
   fill("p_f_pstatus", Object.entries(PSTATUS), "—");
   fill("v_roof", ROOFS, "—"); fill("v_phase", PHASES, "—");
   fill("p_f_ptype", PTYPES, "— चुनिए —"); fill("f_ptype", PTYPES, "किस तरह का — सब");
@@ -795,7 +891,7 @@ async function whoAmI(){
 /* सूची के लिए सिर्फ़ ये खाने — notes और पूरा पता पन्ना खुलने पर आते हैं।
    इससे हर बार उतरने वाला data लगभग आधा रह जाता है। */
 const LIST_COLS = ["id","name","phone","stage","bill_band","bill_bracket","village","district",
-  "source","campaign",
+  "source","campaign","lost_reason",
   "interest","kw_required","next_action_on","assigned_uid","not_a_customer","stage_changed_on",
   "portal_app_no","portal_status","days_stuck","subsidy_eligible","bill_lost","applied_on",
   "system_kw","project_type","commissioned_on","installed_kw","amc_due_on","system_note",
@@ -821,7 +917,7 @@ async function loadLeads(){
     $("t_stuck").textContent =
       `🔴 अटकी applications (${LEADS.filter(l=>l.portal_app_no && !isDone(l)).length})`;
     setTab(TAB);
-    say("msg", "पिछली बार की सूची दिख रही है — नई आ रहा है…", "ok");
+    say("msg", "पिछली बार की सूची दिख रही है — नई आ रही है…", "wait");
   } else if(!LEADS.length){
     $("list").innerHTML = `<div class="empty">आ रहा है…</div>`;
   }
@@ -936,12 +1032,13 @@ function render(){
         ${l.assigned_uid&&isMalik()?`<span class="chip mine">👤 ${esc(nameOf(l.assigned_uid))}</span>`:""}
         ${l.not_a_customer?`<span class="chip nc">ग्राहक नहीं</span>`:""}
         ${l.interest==="hot"?`<span class="chip hot">गरम</span>`:""}
+        ${l.stage==="lost"&&l.lost_reason?`<span class="chip">✖ ${esc(LR[l.lost_reason]||l.lost_reason)}</span>`:""}
         ${l.portal_app_no ? (isDone(l)
             ? `<span class="chip fin">✅ ${esc(PSTATUS[l.portal_status]||l.portal_status)}</span>`
             : `<span class="chip days">${daysStuck(l)} दिन अटका</span>`) : ""}
         ${l.kw_required?`<span class="chip">${esc(l.kw_required)} kW</span>`:""}
         ${l.next_action_on?`<span class="chip">अगला: ${esc(l.next_action_on)}</span>`:""}
-        <button class="btn-ghost btn callb" data-id="${l.id}" style="padding:7px 12px;font-size:13px">📞 call चढ़ाइए</button>
+        <button class="btn-ghost btn callb" data-id="${l.id}" style="padding:7px 12px;font-size:13px">📝 update कीजिए</button>
         <select data-id="${l.id}" class="stg">
           ${STAGES.map(([v,t])=>`<option value="${v}" ${l.stage===v?"selected":""}>${esc(t)}</option>`).join("")}
         </select></div></div>`;
@@ -1027,7 +1124,7 @@ $("a_go").onclick = async () => {
     say("msg", parts.length === 1
       ? `${ids.length} leads ${nm} को सौंप दीं — ${dt}`
       : `${ids.length} leads ${nm} को सौंप दीं — ${parts.length} दिन में बँटीं (${parts[0].date} से)`,
-      "ok"); setTimeout(()=>say("msg",""),4000);
+      "ok");
   }catch(e){ say("msg","सौंपी नहीं गईं — "+e.message); }
   finally{ $("a_go").disabled=false; $("a_go").textContent="सौंप दीजिए"; }
 };
@@ -1073,7 +1170,7 @@ function renderStuck(){
         ${l.subsidy_eligible?`<span class="chip money">subsidy ${rs(l.subsidy_eligible)}</span>`:""}
         ${l.bill_lost?`<span class="chip hot">नुक़सान ${rs(l.bill_lost)}</span>`:""}
         ${l.applied_on?`<span class="chip">apply: ${esc(l.applied_on)}</span>`:""}
-        <button class="btn-ghost btn callb" data-id="${l.id}" style="padding:7px 12px;font-size:13px">📞 call चढ़ाइए</button>
+        <button class="btn-ghost btn callb" data-id="${l.id}" style="padding:7px 12px;font-size:13px">📝 update कीजिए</button>
       </div></div>`).join("");
   wireCallButtons(); wireNames();
 }
@@ -1135,7 +1232,7 @@ function renderLive(){
         <span class="chip">चालू: ${esc(l.commissioned_on)}</span>
         ${amc}
         ${l.system_note?`<span class="chip">${esc(l.system_note).slice(0,40)}</span>`:""}
-        <button class="btn-ghost btn callb" data-id="${l.id}" style="padding:7px 12px;font-size:13px">📞 call चढ़ाइए</button>
+        <button class="btn-ghost btn callb" data-id="${l.id}" style="padding:7px 12px;font-size:13px">📝 update कीजिए</button>
       </div></div>`;
   }).join("");
   wireCallButtons(); wireNames();
@@ -1278,6 +1375,19 @@ function renderWork(){
      <div><div class="k">🏠 Site visits</div><div class="v">${T.visits}</div></div>
      <div><div class="k">🆕 नई leads लाईं</div><div class="v">${T.made}</div></div>`;
 
+  /* ✖ सौदे क्यों नहीं हुए — पूरी सूची का हिसाब, अवधि से बँधा नहीं */
+  const kyon = new Map();
+  LEADS.forEach(l => { if(l.stage === "lost" && l.lost_reason)
+    kyon.set(l.lost_reason, (kyon.get(l.lost_reason)||0) + 1); });
+  const bina = LEADS.filter(l => l.stage === "lost" && !l.lost_reason).length;
+  if(kyon.size || bina){
+    const kram = [...kyon.entries()].sort((a,b) => b[1]-a[1]);
+    $("w_lost").hidden = false;
+    $("w_lost").innerHTML = `<b>✖ सौदे क्यों नहीं हुए</b> <span class="sub2">(अब तक की सारी leads)</span><br>`
+      + kram.map(([k,v]) => `${esc(LR[k]||k)} — <b>${v}</b>`).join(" · ")
+      + (bina ? `<br><span class="zero">${bina} पर कारण नहीं डला</span>` : "");
+  } else $("w_lost").hidden = true;
+
   if(!all.length){ $("list4").innerHTML = `<div class="empty">अभी कोई नाम ही नहीं है।</div>`; return; }
 
   $("list4").innerHTML = all.map(r=>{
@@ -1306,6 +1416,15 @@ function renderWork(){
   }).join("");
   document.querySelectorAll("button.unt").forEach(b => b.onclick = () => openPanna(b.dataset.id));
 }
+$("lb_cancel").onclick = () => bandKyon(null);
+$("lb_save").onclick = () => {
+  const r = $("lb_reason").value, n = $("lb_note").value.trim();
+  if(!r) return say("lb_msg","कारण चुनना ज़रूरी है");
+  if(r === "other" && !n)
+    return say("lb_msg","\"और\" चुना है तो नीचे लिखिए कि क्या वजह थी — वरना बाद में पता नहीं चलेगा");
+  bandKyon({ lost_reason: r, lost_note: n || null });
+};
+
 $("w_refresh").onclick = loadWork;
 $("f_when").addEventListener("input", loadWork);
 $("w_wa").onclick = async () => {
@@ -1313,7 +1432,6 @@ $("w_wa").onclick = async () => {
   if(!txt) return say("msg","पहले हिसाब आने दीजिए");
   await copyKaro(txt);
   say("msg","हिसाब copy हो गया — WhatsApp खुल रहा है","ok");
-  setTimeout(()=>say("msg",""),3000);
   window.open("https://wa.me/?text=" + encodeURIComponent(txt), "_blank", "noopener");
 };
 
@@ -1356,8 +1474,7 @@ function openPanna(id){
   PANNA = LEADS.find(x => x.id === id); if(!PANNA) return;
   if(PANNA.__ruka){                    // अभी भेजी नहीं गई — इसका पन्ना खोलने लायक़ नहीं
     PANNA = null;
-    say("msg","यह lead अभी भेजी नहीं गई। 📴 वाली पट्टी दबाकर भेज दीजिए, फिर खुलेगी");
-    setTimeout(()=>say("msg",""),4000); return;
+    say("msg","यह lead अभी भेजी नहीं गई। 📴 वाली पट्टी दबाकर भेज दीजिए, फिर खुलेगी"); return;
   }
   const l = PANNA, staffMode = ME.role === "staff";
   $("p_name").textContent = l.name || "बिना नाम";
@@ -1366,7 +1483,10 @@ function openPanna(id){
     [l.village,l.district].filter(Boolean).map(esc).join(", "),
     S[l.stage] || "",
     laayaKaun(l),
-    slept !== null ? `<b style="color:#92400e">🕐 ${slept} दिन से नहीं हिली</b>` : ""
+    slept !== null ? `<b style="color:#92400e">🕐 ${slept} दिन से नहीं हिली</b>` : "",
+    l.stage === "lost" && l.lost_reason
+      ? `<b style="color:#b91c1c">✖ ${esc(LR[l.lost_reason]||l.lost_reason)}</b>`
+        + (l.lost_note ? ` — ${esc(l.lost_note)}` : "") : ""
   ].filter(Boolean).join(" · ");
 
   $("p_qmsg").hidden = true;
@@ -1526,19 +1646,32 @@ $("p_save").onclick = async () => {
     body.subsidy_eligible = num($("p_f_sub").value);
     body.bill_lost        = num($("p_f_loss").value);
   }
+  // Opportunity lost चुना है तो कारण पूछे बिना आगे नहीं
+  if(body.stage === "lost" && !PANNA.lost_reason){
+    const kyon = await poochoKyon(PANNA.name || "", PANNA);
+    if(!kyon) return say("p_msg","कारण डाले बिना Opportunity lost नहीं लगेगा");
+    Object.assign(body, kyon);
+  }
   $("p_save").disabled = true; $("p_save").textContent = "Save हो रहा है…";
   try{
     const bheja = await bhejoYaRoko("panna", body.name || PANNA.name || "",
       [{ path:`/rest/v1/leads?id=eq.${PANNA.id}`, method:"PATCH", body }]);
     Object.assign(PANNA, body);
     cacheSave();
-    openPanna(PANNA.id);
+    const id = PANNA.id;
+    openPanna(id);
     redraw();
-    say("p_msg", bheja ? "Save हो गया"
-                       : "📴 फ़ोन में सहेज लिया — network आते ही चढ़ जाएगा", "ok");
-    setTimeout(()=>say("p_msg",""),3000);
+    jhalak(id, bheja ? "ok" : "wait");
+    $("p_save").classList.add("saved");
+    $("p_save").textContent = bheja ? "✅ Save हो गया" : "📴 फ़ोन में सहेजा";
+    setTimeout(() => { $("p_save").classList.remove("saved");
+                       $("p_save").textContent = "बदलाव Save कीजिए"; }, 1800);
+    toast(bheja ? "Save हो गया" : "फ़ोन में सहेज लिया — network आते ही चढ़ जाएगा",
+          bheja ? "ok" : "wait");
   }catch(e){ say("p_msg","Save नहीं हुआ — "+e.message); }
-  finally{ $("p_save").disabled=false; $("p_save").textContent="बदलाव Save कीजिए"; }
+  finally{ $("p_save").disabled=false;
+    // Save हो गया वाला हरा रूप मत मिटाइए — वह ख़ुद 1.8 सेकंड में हट जाता है
+    if(!$("p_save").classList.contains("saved")) $("p_save").textContent="बदलाव Save कीजिए"; }
 };
 
 /* "⚡ यह सिस्टम चालू हो गया" — तारीख़, stage और AMC एक साथ */
@@ -1738,9 +1871,8 @@ async function qBhejo(dikhao){
   QBUSY = false; qBar();
   if(dikhao){
     if(gaya && !a.length) say("msg", `✅ ${gaya} रुकी हुई ${gaya===1?"चीज़ भेज दी":"चीज़ें भेज दीं"}`, "ok");
-    else if(gaya)         say("msg", `${gaya} भेज दीं · ${a.length} अभी भी रुकी ${a.length===1?"है":"हैं"}`, "ok");
-    else if(ruka)         say("msg", "network अब भी नहीं मिल रहा — मिलते ही अपने-आप चली जाएँगी");
-    setTimeout(()=>say("msg",""), 3500);
+    else if(gaya)         say("msg", `${gaya} भेज दीं · ${a.length} अभी भी रुकी ${a.length===1?"है":"हैं"}`, "wait");
+    else if(ruka)         say("msg", "network अब भी नहीं मिल रहा — मिलते ही अपने-आप चली जाएँगी", "wait");
   }
   // नई lead चढ़ गई तो असली सूची मँगा लीजिए — फ़ोन वाली नक़ली पंक्ति हट जाएगी
   if(nayiGayi) loadLeads(); else if(gaya) redraw();
@@ -1999,7 +2131,7 @@ function wireCallButtons(){
 }
 function openCall(id){
   CALL_LEAD = LEADS.find(x => x.id === id); if(!CALL_LEAD) return;
-  $("c_title").textContent = `Call चढ़ाइए — ${CALL_LEAD.name || ""}`;
+  $("c_title").textContent = `Update — ${CALL_LEAD.name || ""}`;
   $("c_outcome").value = "connected";
   $("c_interest").value = CALL_LEAD.interest || "";
   $("c_next").value = ""; $("c_notes").value = "";
@@ -2065,7 +2197,8 @@ $("c_save").onclick = async () => {
       await apiRetry(`/rest/v1/leads?id=eq.${CALL_LEAD.id}`,{method:"PATCH",
         headers:{Prefer:"return=minimal"}, body: JSON.stringify(upd)});
     leadBaad();
-    say("msg", `${CALL_LEAD.name} की call चढ़ गई`, "ok"); setTimeout(()=>say("msg",""),2500);
+    jhalak(CALL_LEAD.id, "ok");
+    toast(`${CALL_LEAD.name} — update चढ़ गया`, "ok");
   }catch(e){
     if(!networkWaali(e)) { say("c_msg","Save नहीं हुआ — " + e.message); }
     else {
@@ -2075,8 +2208,8 @@ $("c_save").onclick = async () => {
         reqs.push({ path:`/rest/v1/leads?id=eq.${CALL_LEAD.id}`, method:"PATCH", body: upd });
       qAdd({ at: Date.now(), naam: CALL_LEAD.name || "", reqs });
       leadBaad();
-      say("msg", `📴 network नहीं है — ${CALL_LEAD.name} की call फ़ोन में रख ली, बाद में चली जाएगी`, "ok");
-      setTimeout(()=>say("msg",""), 4000);
+      jhalak(CALL_LEAD.id, "wait");
+      toast(`${CALL_LEAD.name} — फ़ोन में रख लिया, network आते ही चला जाएगा`, "wait");
     }
   }
   finally{ $("c_save").disabled=false; $("c_save").textContent="Save कीजिए"; }
@@ -2094,7 +2227,6 @@ async function markNotCustomer(){
     $("callbox").hidden = true;
     redraw();
     say("msg", `${CALL_LEAD.name} को सूची से हटा दिया — "ग्राहक नहीं"`, "ok");
-    setTimeout(()=>say("msg",""),3000);
   }catch(e){
     say("c_msg", /not_a_customer/.test(e.message)
       ? "पहले Supabase में वह एक line वाली SQL चला दीजिए (not_a_customer खाना अभी बना नहीं है)"
@@ -2103,18 +2235,47 @@ async function markNotCustomer(){
   finally{ $("c_save").disabled=false; ncToggle(); }
 }
 
+/* ---------- सौदा क्यों नहीं हुआ ---------- */
+let LOSTCB = null;                      // जवाब मिलने पर क्या करना है
+
+/* खिड़की खोलिए और कारण पूछिए। जवाब मिले तो {lost_reason, lost_note},
+   रहने दीजिए दबाने पर null।                                              */
+function poochoKyon(naam, pehle){
+  return new Promise(resolve => {
+    LOSTCB = resolve;
+    $("lb_title").textContent = "सौदा क्यों नहीं हुआ?" + (naam ? " — " + naam : "");
+    $("lb_reason").value = (pehle && pehle.lost_reason) || "";
+    $("lb_note").value   = (pehle && pehle.lost_note) || "";
+    say("lb_msg","");
+    $("lostbox").hidden = false;
+    $("lb_reason").focus();
+  });
+}
+function bandKyon(jawab){
+  $("lostbox").hidden = true;
+  const cb = LOSTCB; LOSTCB = null;
+  if(cb) cb(jawab);
+}
+
 async function changeStage(id,stage){
   const l = LEADS.find(x=>x.id===id);
   if(l && l.__ruka) return say("msg","यह lead अभी भेजी नहीं गई — पहले 📴 वाली पट्टी दबाइए");
+  const body = { stage };
+  if(stage === "lost"){                 // कारण पूछे बिना आगे मत बढ़िए
+    const kyon = await poochoKyon((l&&l.name)||"", l);
+    if(!kyon){ redraw(); return; }      // रहने दिया — पुराना stage वापस दिखाइए
+    Object.assign(body, kyon);
+  }
   try{
     const bheja = await bhejoYaRoko("stage", (l&&l.name)||"",
-      [{ path:`/rest/v1/leads?id=eq.${id}`, method:"PATCH", body:{ stage } }]);
-    if(l){ l.stage=stage; l.stage_changed_on=today(); }
+      [{ path:`/rest/v1/leads?id=eq.${id}`, method:"PATCH", body }]);
+    if(l){ Object.assign(l, body); l.stage_changed_on=today(); }
     cacheSave();
     redraw();                       // ताकि "नहीं हिली" वाला निशान तुरंत हट जाए
-    say("msg", bheja ? `Stage बदल गया — ${S[stage]}`
-                     : `📴 Stage सहेज लिया — network आते ही चढ़ जाएगा`, "ok");
-    setTimeout(()=>say("msg",""),2500);
+    jhalak(id, bheja ? "ok" : "wait");
+    toast(bheja ? `Stage बदल गया — ${S[stage]}`
+                : `Stage फ़ोन में सहेजा — network आते ही चढ़ जाएगा`,
+          bheja ? "ok" : "wait");
   }catch(e){ say("msg","Stage नहीं बदला — "+e.message); loadLeads(); }
 }
 ["q","f_stage","f_bill","f_int","f_camp","f_nodate","f_show_nc","f_today","f_stale","f_assign"]
@@ -2152,7 +2313,7 @@ $("f_save").onclick = async () => {
       headers:{Prefer:"return=representation"},body:JSON.stringify(body)});
     LEADS.unshift(Array.isArray(out)?out[0]:out);
     saaf(); cacheSave();
-    redraw(); say("msg",`${name} जुड़ गए`,"ok"); setTimeout(()=>say("msg",""),2500);
+    redraw(); toast(`${name} जुड़ गए`, "ok");
   }catch(e){
     if(networkWaali(e)){
       // network नहीं है — lead फ़ोन में रख लीजिए और सूची में दिखा दीजिए
@@ -2160,8 +2321,7 @@ $("f_save").onclick = async () => {
              reqs:[{ path:"/rest/v1/leads", method:"POST", body }] });
       LEADS.unshift(Object.assign({ id:"ruki-"+Date.now(), __ruka:true }, body));
       saaf(); cacheSave(); redraw();
-      say("msg", `📴 ${name} फ़ोन में सहेज लिए — network आते ही चढ़ जाएँगे`, "ok");
-      setTimeout(()=>say("msg",""),3500);
+      toast(`${name} — फ़ोन में सहेजे, network आते ही चढ़ जाएँगे`, "wait");
     } else {
       say("f_msg", /duplicate|unique/i.test(e.message)
         ? "यह phone पहले से किसी lead पर है" : "Save नहीं हुआ — "+e.message);
