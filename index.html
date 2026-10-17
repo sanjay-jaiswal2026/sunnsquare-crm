@@ -2206,7 +2206,7 @@ $("c_save").onclick = async () => {
       const reqs = [{ path:"/rest/v1/calls", method:"POST", body }];
       if(Object.keys(upd).length)
         reqs.push({ path:`/rest/v1/leads?id=eq.${CALL_LEAD.id}`, method:"PATCH", body: upd });
-      qAdd({ at: Date.now(), naam: CALL_LEAD.name || "", reqs });
+      qAdd({ at: Date.now(), kind:"call", naam: CALL_LEAD.name || "", reqs });
       leadBaad();
       jhalak(CALL_LEAD.id, "wait");
       toast(`${CALL_LEAD.name} — फ़ोन में रख लिया, network आते ही चला जाएगा`, "wait");
