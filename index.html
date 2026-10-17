@@ -126,6 +126,19 @@
   .ptile .pk button{border:0;background:none;color:#b91c1c;font-size:12px;cursor:pointer;padding:0}
   .visitrow .kv{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap}
 
+  .fold{border:1px solid var(--line);border-radius:var(--radius);margin:14px 0;background:#fff}
+  .fold>summary{cursor:pointer;list-style:none;padding:13px 15px;font-weight:700;font-size:15px;
+    display:flex;align-items:center;gap:8px;color:var(--ink)}
+  .fold>summary::-webkit-details-marker{display:none}
+  .fold>summary::before{content:"▸";color:var(--muted);font-weight:400;font-size:17px}
+  .fold[open]>summary::before{content:"▾"}
+  .fold[open]>summary{border-bottom:1px solid var(--line)}
+  .fold>*:not(summary){margin-left:15px;margin-right:15px}
+  .fold>*:last-child{margin-bottom:14px}
+  .wsum{background:#fff;border:1px solid var(--line);border-left:5px solid var(--brand);
+    border-radius:var(--radius);padding:13px 15px;margin:12px 0;font-size:15px;line-height:1.7}
+  .wsum b{font-weight:800}
+  .wsum .zero{color:var(--bad);font-weight:700}
   .wcard{background:#fff;border:1px solid var(--line);border-radius:var(--radius);
          padding:14px;margin-bottom:12px;border-left:5px solid var(--brand)}
   .wcard.zero{border-left-color:var(--bad);background:#fffafa}
@@ -298,11 +311,13 @@
         <select id="f_when">
           <option value="0">आज</option>
           <option value="1">कल</option>
-          <option value="7" selected>पिछले 7 दिन</option>
+          <option value="7">पिछले 7 दिन</option>
           <option value="30">पिछले 30 दिन</option>
         </select>
         <button class="btn-ghost btn" id="w_refresh" style="flex:1;min-width:130px">↻ Refresh</button>
+        <button class="btn-ghost btn" id="w_wa" style="flex:1;min-width:150px">📋 WhatsApp पर भेजिए</button>
       </div>
+      <div class="wsum" id="w_line" hidden></div>
       <div class="strip" id="strip4"></div>
       <div id="list4"></div>
     </div>
@@ -330,47 +345,12 @@
     <div id="p_qmsg" class="hint" hidden></div>
 
     <div id="p_portal" class="pbox" hidden></div>
-
-    <div id="p_pedit" hidden>
-      <h3 class="ph">PM Surya Ghar application</h3>
-      <div class="grid2">
-        <div><label>Application number</label><input id="p_f_app"></div>
-        <div><label>कब apply हुई</label><input id="p_f_applied" type="date"></div>
-      </div>
-      <div class="grid2">
-        <div><label>System kW</label><input id="p_f_skw" inputmode="decimal"></div>
-        <div><label>कहाँ अटका है</label><select id="p_f_pstatus"></select></div>
-      </div>
-      <div class="grid2">
-        <div><label>Subsidy (₹)</label><input id="p_f_sub" inputmode="numeric"></div>
-        <div><label>ग्राहक का बिल नुक़सान (₹)</label><input id="p_f_loss" inputmode="numeric"></div>
-      </div>
-      <button class="btn done" id="p_done">✅ पूरा हो गया — subsidy आ गई, सूची से हटाइए</button>
-      <p class="hint" style="margin:8px 0 0">
-        यह बटन status को "चालू हो गया" कर देता है और अटकी applications की सूची से हटा देता है।
-        जानकारी मिटती नहीं — "पूरी हो चुकीं" वाला निशान लगाकर वापस देख सकते हैं।</p>
-    </div>
-
     <div id="p_live" class="pbox ok" hidden></div>
 
-    <h3 class="ph">लगा हुआ सिस्टम</h3>
-    <div class="grid2">
-      <div><label>किस तरह का काम</label><select id="p_f_ptype"></select></div>
-      <div><label>कब चालू हुआ</label><input id="p_f_comm" type="date"></div>
-    </div>
-    <div class="grid2">
-      <div><label>कितने kW लगे</label><input id="p_f_ikw" inputmode="decimal"></div>
-      <div><label>अगली AMC कब</label><input id="p_f_amc" type="date"></div>
-    </div>
-    <label>सामान का ब्योरा (inverter, panel, battery…)</label>
-    <textarea id="p_f_snote" rows="2" placeholder="जैसे: 5kW Growatt inverter, 10×545W Waaree panel"></textarea>
-    <button class="btn done" id="p_live_btn">⚡ यह सिस्टम चालू हो गया — आज की तारीख़ डालिए</button>
+    <h3 class="ph">पिछली calls <span id="p_ccount" class="sub2"></span></h3>
+    <div id="p_calls"><div class="empty">आ रहा है…</div></div>
 
     <h3 class="ph">जानकारी</h3>
-    <div class="grid2">
-      <div><label>नाम</label><input id="p_f_name"></div>
-      <div><label>Phone</label><input id="p_f_phone" inputmode="tel"></div>
-    </div>
     <div class="grid2">
       <div><label>गाँव / मोहल्ला</label><input id="p_f_village"></div>
       <div><label>ज़िला</label><input id="p_f_district"></div>
@@ -397,6 +377,13 @@
     </div>
     <label>Stage</label><select id="p_f_stage"></select>
     <label>Note</label><textarea id="p_f_notes" rows="3"></textarea>
+    <details id="p_np" class="fold">
+      <summary>✏️ नाम / phone सुधारिए</summary>
+      <div class="grid2">
+        <div><label>नाम</label><input id="p_f_name"></div>
+        <div><label>Phone</label><input id="p_f_phone" inputmode="tel"></div>
+      </div>
+    </details>
     <div id="p_msg"></div>
     <div class="modal-actions">
       <button class="btn" id="p_save">बदलाव Save कीजिए</button>
@@ -406,8 +393,42 @@
       <button class="btn mini" id="p_newvisit">+ नया site visit</button></h3>
     <div id="p_visits"><div class="empty">आ रहा है…</div></div>
 
-    <h3 class="ph">Call का इतिहास <span id="p_ccount" class="sub2"></span></h3>
-    <div id="p_calls"><div class="empty">आ रहा है…</div></div>
+    <details id="p_pedit" class="fold" hidden>
+      <summary>☀️ PM सूर्य घर application <span id="p_pnote" class="sub2"></span></summary>
+      <div class="grid2">
+        <div><label>Application number</label><input id="p_f_app"></div>
+        <div><label>कब apply हुई</label><input id="p_f_applied" type="date"></div>
+      </div>
+      <div class="grid2">
+        <div><label>System kW</label><input id="p_f_skw" inputmode="decimal"></div>
+        <div><label>कहाँ अटका है</label><select id="p_f_pstatus"></select></div>
+      </div>
+      <div class="grid2">
+        <div><label>Subsidy (₹)</label><input id="p_f_sub" inputmode="numeric"></div>
+        <div><label>ग्राहक का बिल नुक़सान (₹)</label><input id="p_f_loss" inputmode="numeric"></div>
+      </div>
+      <button class="btn done" id="p_done">✅ पूरा हो गया — subsidy आ गई, सूची से हटाइए</button>
+      <p class="hint" style="margin:8px 0 0">
+        यह बटन status को "चालू हो गया" कर देता है और अटकी applications की सूची से हटा देता है।
+        जानकारी मिटती नहीं — "पूरी हो चुकीं" वाला निशान लगाकर वापस देख सकते हैं।</p>
+    </details>
+
+    <details id="p_sys" class="fold">
+      <summary>⚡ लगा हुआ सिस्टम <span id="p_snote2" class="sub2"></span></summary>
+      <div class="grid2">
+        <div><label>किस तरह का काम</label><select id="p_f_ptype"></select></div>
+        <div><label>कब चालू हुआ</label><input id="p_f_comm" type="date"></div>
+      </div>
+      <div class="grid2">
+        <div><label>कितने kW लगे</label><input id="p_f_ikw" inputmode="decimal"></div>
+        <div><label>अगली AMC कब</label><input id="p_f_amc" type="date"></div>
+      </div>
+      <label>सामान का ब्योरा (inverter, panel, battery…)</label>
+      <textarea id="p_f_snote" rows="2" placeholder="जैसे: 5kW Growatt inverter, 10×545W Waaree panel"></textarea>
+      <button class="btn done" id="p_live_btn">⚡ यह सिस्टम चालू हो गया — आज की तारीख़ डालिए</button>
+      <p class="hint" style="margin:8px 0 0">
+        यहाँ भरी जानकारी ⚡ चालू सिस्टम वाले पन्ने और AMC की याद-दिलावट में काम आती है।</p>
+    </details>
   </div>
 </div>
 
@@ -1135,6 +1156,27 @@ function laayaKaun(l){
 
 /* ---------- 📊 काम का हिसाब ---------- */
 let WORK = null;                       // { from, calls:[], visits:[] }
+let WLINE = null;                      // एक पंक्ति का सार — WhatsApp के लिए भी
+
+/* हिसाब को सादे शब्दों में बदलिए, ताकि WhatsApp पर भेजा जा सके */
+function workText(){
+  if(!WLINE) return "";
+  const L = ["📊 Sunn Square — काम का हिसाब", WLINE.kabSe, ""];
+  if(!WLINE.log.length) L.push("किसी ने कोई call नहीं चढ़ाई।");
+  WLINE.log.forEach(r => {
+    L.push(`${r.name}`);
+    L.push(`  calls ${r.calls} · बात ${r.done} · गरम ${r.hot}`
+         + (r.visits ? ` · visits ${r.visits}` : "")
+         + (r.made ? ` · नई leads ${r.made}` : ""));
+    if((r.untouched||[]).length)
+      L.push(`  सौंपी ${r.assigned} में से ${r.untouched.length} छुई नहीं`);
+    L.push("");
+  });
+  const T = WLINE.T;
+  L.push(`कुल — calls ${T.calls} · बात ${T.done} · गरम ${T.hot}`
+       + (T.visits ? ` · visits ${T.visits}` : ""));
+  return L.join("\n");
+}
 
 function fromDate(days){
   const d = new Date(); d.setHours(0,0,0,0);
@@ -1216,6 +1258,19 @@ function renderWork(){
   const kabSe = +sel === 0 ? "आज" : +sel === 1 ? "कल"
               : `${sel} दिन में (${from.toLocaleDateString("en-IN")} से)`;
 
+  /* एक पंक्ति का सार — पाँच सेकंड में पूरी तस्वीर */
+  WLINE = { kabSe, log: all.filter(r => r.calls || r.visits || r.made), T };
+  const ek = r => `<b>${esc(r.name)}</b> — ${r.calls} calls · ${r.done} बात`
+    + (r.hot ? ` · 🔥 ${r.hot} गरम` : "")
+    + (r.visits ? ` · 🏠 ${r.visits}` : "")
+    + ((r.untouched||[]).length ? ` · <span class="zero">${r.untouched.length} leads छुई नहीं</span>` : "");
+  const chup = all.filter(r => !r.calls && !r.visits && !r.made).map(r => r.name);
+  $("w_line").hidden = false;
+  $("w_line").innerHTML = WLINE.log.length
+    ? `${esc(kabSe)} —<br>${WLINE.log.map(ek).join("<br>")}`
+      + (chup.length ? `<br><span class="zero">⚠️ ${esc(chup.join(", "))} — कुछ नहीं किया</span>` : "")
+    : `<span class="zero">${esc(kabSe)} — किसी ने कोई call नहीं चढ़ाई</span>`;
+
   $("strip4").innerHTML =
     `<div><div class="k">${esc(kabSe)} — कुल calls</div><div class="v">${T.calls}</div></div>
      <div><div class="k">बात हुई</div><div class="v">${T.done}</div></div>
@@ -1253,6 +1308,14 @@ function renderWork(){
 }
 $("w_refresh").onclick = loadWork;
 $("f_when").addEventListener("input", loadWork);
+$("w_wa").onclick = async () => {
+  const txt = workText();
+  if(!txt) return say("msg","पहले हिसाब आने दीजिए");
+  await copyKaro(txt);
+  say("msg","हिसाब copy हो गया — WhatsApp खुल रहा है","ok");
+  setTimeout(()=>say("msg",""),3000);
+  window.open("https://wa.me/?text=" + encodeURIComponent(txt), "_blank", "noopener");
+};
 
 /* ---------- lead का पन्ना ---------- */
 let PANNA = null;
@@ -1347,6 +1410,14 @@ function openPanna(id){
        ${l.amc_due_on ? ` · अगली AMC ${esc(l.amc_due_on)}${d<=0?" — समय आ गया":d<=30?` (${d} दिन में)`:""}`
                       : " · AMC तारीख़ नहीं डली"}`;
   } else $("p_live").hidden = true;
+
+  // ☀️ और ⚡ वाले डिब्बे — जानकारी पड़ी हो तो अपने-आप खुलें, वरना बंद रहें
+  $("p_pedit").open = !!l.portal_app_no;
+  $("p_pnote").textContent = l.portal_app_no ? "" : "— अभी भरी नहीं";
+  $("p_sys").open = isLive(l);
+  $("p_snote2").textContent = isLive(l) ? "" : "— अभी लगा नहीं";
+  $("p_np").open = false;                       // नाम/phone हमेशा बंद से शुरू
+  $("p_np").hidden = staffMode;                 // staff नाम-phone बदल ही नहीं सकता
 
   // application के खाने — सिर्फ़ मालिक बदल सकता है
   $("p_pedit").hidden = !isMalik();
