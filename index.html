@@ -1593,8 +1593,8 @@ $("p_quote").onclick = async () => {
 const QKEY = "ss_queue";
 let QBUSY = false;
 /* क़तार में किस तरह का काम रुका है — पट्टी पर यही नाम दिखता है */
-const QNAAM = { call:"call", nayi:"नई lead", panna:"ग्राहक का पन्ना",
-                stage:"stage", visit:"site visit" };
+const QNAAM = { call:"call की जानकारी", nayi:"नई lead", panna:"पन्ने के बदलाव",
+                stage:"stage का बदलाव", visit:"site visit की नाप-जोख" };
 
 function qLoad(){ try{ const a = JSON.parse(load(QKEY) || "[]"); return Array.isArray(a) ? a : []; }
                   catch(e){ return []; } }
@@ -1626,16 +1626,23 @@ function networkWaali(e){
 function qBar(){
   const a = qLoad(), bar = $("qbar");
   if(!bar) return;
-  const ruke = a.filter(x => !x.error).length, kharab = a.filter(x => x.error).length;
-  bar.hidden = !(ruke || kharab);
+  const ruke = a.filter(x => !x.error), kharab = a.filter(x => x.error);
+  bar.hidden = !(ruke.length || kharab.length);
   if(bar.hidden) return;
-  bar.className = "alarm" + (kharab ? " hot" : "");
-  const kya = [...new Set(a.filter(x=>!x.error).map(x => QNAAM[x.kind] || "काम"))].join(" · ");
-  bar.innerHTML = kharab
-    ? `⚠️ ${kharab} काम भेजा नहीं जा सका — दबाकर देखिए
-       <small>${ruke ? ruke+" और क़तार में · " : ""}दबाने पर दोबारा कोशिश होगी</small>`
-    : `📴 ${ruke} काम भेजना बाक़ी${kya ? " — " + kya : ""} · दबाकर अभी भेजिए
-       <small>network आते ही अपने-आप भी चला जाएगा</small>`;
+  bar.className = "alarm" + (kharab.length ? " hot" : "");
+  /* किसका क्या रुका है — नाम समेत, ताकि एक नज़र में पता चले */
+  const suchi = arr => {
+    const t = arr.slice(0,2).map(x =>
+      (x.naam ? esc(x.naam) + " — " : "") + (QNAAM[x.kind] || "एक काम"));
+    if(arr.length > 2) t.push(`और ${arr.length - 2}`);
+    return t.join(" · ");
+  };
+  const ek = ruke.length === 1;
+  bar.innerHTML = kharab.length
+    ? `⚠️ ${kharab.length} चीज़ भेजी नहीं जा सकी — यहाँ दबाकर दोबारा कोशिश कीजिए
+       <small>${suchi(kharab)}${ruke.length ? ` · ${ruke.length} और रुकी ${ruke.length===1?"है":"हैं"}` : ""}</small>`
+    : `📴 ${ruke.length} ${ek?"चीज़":"चीज़ें"} फ़ोन में रुकी ${ek?"है":"हैं"} — यहाँ दबाकर अभी भेजिए
+       <small>${suchi(ruke)} · network आते ही अपने-आप भी चली ${ek?"जाएगी":"जाएँगी"}</small>`;
 }
 
 async function qBhejo(dikhao){
@@ -1659,9 +1666,9 @@ async function qBhejo(dikhao){
   a = a.filter(x => !x.done); qSave(a);
   QBUSY = false; qBar();
   if(dikhao){
-    if(gaya && !a.length) say("msg", `✅ ${gaya} रुके हुए काम भेज दिए`, "ok");
-    else if(gaya)         say("msg", `${gaya} भेजे · ${a.length} अभी भी बाक़ी`, "ok");
-    else if(ruka)         say("msg", "network अब भी नहीं मिल रहा — बाद में अपने-आप चले जाएँगे");
+    if(gaya && !a.length) say("msg", `✅ ${gaya} रुकी हुई ${gaya===1?"चीज़ भेज दी":"चीज़ें भेज दीं"}`, "ok");
+    else if(gaya)         say("msg", `${gaya} भेज दीं · ${a.length} अभी भी रुकी ${a.length===1?"है":"हैं"}`, "ok");
+    else if(ruka)         say("msg", "network अब भी नहीं मिल रहा — मिलते ही अपने-आप चली जाएँगी");
     setTimeout(()=>say("msg",""), 3500);
   }
   // नई lead चढ़ गई तो असली सूची मँगा लीजिए — फ़ोन वाली नक़ली पंक्ति हट जाएगी
