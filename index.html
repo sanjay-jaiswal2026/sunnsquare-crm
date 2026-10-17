@@ -885,7 +885,7 @@ function render(){
     if(!q) return true;
     return [l.name,l.phone,l.village,l.district].some(v=>String(v||"").toLowerCase().includes(q));
   });
-  SHOWN = rows.map(l=>l.id);
+  SHOWN = rows.filter(l=>!l.__ruka).map(l=>l.id);   // रुकी हुई leads सौंपी नहीं जा सकतीं
   const hid = LEADS.filter(l=>l.not_a_customer).length;
   $("count").textContent = `${rows.length} दिख रही हैं · कुल ${LEADS.length}`
     + (hid && !showNC ? ` · ${hid} अपने/test छिपे हैं` : "");
@@ -899,6 +899,10 @@ function render(){
     const band=l.bill_band||l.bill_bracket||"", big=/25,000|12,000/.test(band);
     const place=[l.village,l.district].filter(Boolean).join(", ");
     const slept = isStale(l, td) ? sleptDays(l) : null;
+    if(l.__ruka) return `<div class="lead slept"><div class="top"><div>
+      <b style="font-size:16px">${esc(l.name||"बिना नाम")}</b>
+      <div class="meta">${l.phone?esc(l.phone):"phone नहीं"}${place?" · "+esc(place):""}</div></div></div>
+      <div class="row2"><span class="chip slept">📴 भेजी नहीं गई — network आते ही चढ़ जाएगी</span></div></div>`;
     return `<div class="lead ${l.not_a_customer?"nc":""} ${slept!==null?"slept":""} ${PICKED.has(l.id)?"picked":""}"><div class="top"><div>
       <button class="nmbtn" data-id="${l.id}">${esc(l.name||"बिना नाम")}</button>
       <div class="meta">${l.phone?`<a class="tel" href="tel:${telHref(l.phone)}">${esc(l.phone)}</a>`:"phone नहीं"}
@@ -1287,6 +1291,11 @@ function wireNames(){
 }
 function openPanna(id){
   PANNA = LEADS.find(x => x.id === id); if(!PANNA) return;
+  if(PANNA.__ruka){                    // अभी भेजी नहीं गई — इसका पन्ना खोलने लायक़ नहीं
+    PANNA = null;
+    say("msg","यह lead अभी भेजी नहीं गई। 📴 वाली पट्टी दबाकर भेज दीजिए, फिर खुलेगी");
+    setTimeout(()=>say("msg",""),4000); return;
+  }
   const l = PANNA, staffMode = ME.role === "staff";
   $("p_name").textContent = l.name || "बिना नाम";
   const slept = isStale(l, today()) ? sleptDays(l) : null;
@@ -1448,12 +1457,15 @@ $("p_save").onclick = async () => {
   }
   $("p_save").disabled = true; $("p_save").textContent = "Save हो रहा है…";
   try{
-    await apiRetry(`/rest/v1/leads?id=eq.${PANNA.id}`,{method:"PATCH",
-      headers:{Prefer:"return=representation"}, body: JSON.stringify(body)})
-      .then(r => { if(Array.isArray(r) && r[0]) Object.assign(PANNA, r[0]); else Object.assign(PANNA, body); });
+    const bheja = await bhejoYaRoko("panna", body.name || PANNA.name || "",
+      [{ path:`/rest/v1/leads?id=eq.${PANNA.id}`, method:"PATCH", body }]);
+    Object.assign(PANNA, body);
+    cacheSave();
     openPanna(PANNA.id);
     redraw();
-    say("p_msg","Save हो गया","ok"); setTimeout(()=>say("p_msg",""),2500);
+    say("p_msg", bheja ? "Save हो गया"
+                       : "📴 फ़ोन में सहेज लिया — network आते ही चढ़ जाएगा", "ok");
+    setTimeout(()=>say("p_msg",""),3000);
   }catch(e){ say("p_msg","Save नहीं हुआ — "+e.message); }
   finally{ $("p_save").disabled=false; $("p_save").textContent="बदलाव Save कीजिए"; }
 };
@@ -1580,11 +1592,29 @@ $("p_quote").onclick = async () => {
 /* network न मिले तो call यहीं फ़ोन में रुक जाती है और बाद में अपने-आप चली जाती है */
 const QKEY = "ss_queue";
 let QBUSY = false;
+/* क़तार में किस तरह का काम रुका है — पट्टी पर यही नाम दिखता है */
+const QNAAM = { call:"call", nayi:"नई lead", panna:"ग्राहक का पन्ना",
+                stage:"stage", visit:"site visit" };
 
 function qLoad(){ try{ const a = JSON.parse(load(QKEY) || "[]"); return Array.isArray(a) ? a : []; }
                   catch(e){ return []; } }
 function qSave(a){ try{ store(QKEY, JSON.stringify(a)); }catch(e){} }
 function qAdd(item){ const a = qLoad(); a.push(item); qSave(a); qBar(); }
+
+/* एक काम — या तो अभी भेज दीजिए, या network न हो तो क़तार में रख लीजिए।
+   असली गड़बड़ (जैसे वही phone पहले से दर्ज) ऊपर वाला ही सँभालेगा। */
+async function bhejoYaRoko(kind, naam, reqs){
+  try{
+    for(const r of reqs)
+      await apiRetry(r.path, { method: r.method,
+        headers:{ Prefer:"return=minimal" }, body: JSON.stringify(r.body) });
+    return true;                       // चला गया
+  }catch(e){
+    if(!networkWaali(e)) throw e;      // network की बात नहीं — असली गड़बड़
+    qAdd({ at: Date.now(), kind, naam, reqs });
+    return false;                      // फ़ोन में रख लिया
+  }
+}
 
 /* network की वजह से रुका, या सचमुच कोई गड़बड़ है? */
 function networkWaali(e){
@@ -1600,11 +1630,12 @@ function qBar(){
   bar.hidden = !(ruke || kharab);
   if(bar.hidden) return;
   bar.className = "alarm" + (kharab ? " hot" : "");
+  const kya = [...new Set(a.filter(x=>!x.error).map(x => QNAAM[x.kind] || "काम"))].join(" · ");
   bar.innerHTML = kharab
-    ? `⚠️ ${kharab} call भेजी नहीं जा सकी — दबाकर देखिए
+    ? `⚠️ ${kharab} काम भेजा नहीं जा सका — दबाकर देखिए
        <small>${ruke ? ruke+" और क़तार में · " : ""}दबाने पर दोबारा कोशिश होगी</small>`
-    : `📴 ${ruke} call भेजने बाक़ी — दबाकर अभी भेजिए
-       <small>network आते ही अपने-आप भी चली जाएँगी</small>`;
+    : `📴 ${ruke} काम भेजना बाक़ी${kya ? " — " + kya : ""} · दबाकर अभी भेजिए
+       <small>network आते ही अपने-आप भी चला जाएगा</small>`;
 }
 
 async function qBhejo(dikhao){
@@ -1612,13 +1643,14 @@ async function qBhejo(dikhao){
   let a = qLoad();
   if(!a.length){ qBar(); return; }
   QBUSY = true;
-  let gaya = 0, ruka = 0;
+  let gaya = 0, ruka = 0, nayiGayi = false;
   for(const item of a){
     try{
       for(const r of item.reqs)
         await apiRetry(r.path, { method: r.method,
           headers:{ Prefer:"return=minimal" }, body: JSON.stringify(r.body) });
       item.done = true; gaya++;
+      if(item.kind === "nayi") nayiGayi = true;
     }catch(e){
       if(networkWaali(e)){ ruka++; break; }          // network नहीं है — बाक़ी Cancel
       item.error = e.message || "गड़बड़";             // असली गड़बड़ — निशान लगाकर आगे बढ़िए
@@ -1627,11 +1659,13 @@ async function qBhejo(dikhao){
   a = a.filter(x => !x.done); qSave(a);
   QBUSY = false; qBar();
   if(dikhao){
-    if(gaya && !a.length) say("msg", `✅ ${gaya} रुकी हुई call भेज दीं`, "ok");
-    else if(gaya)         say("msg", `${gaya} भेजीं · ${a.length} अभी भी बाक़ी`, "ok");
-    else if(ruka)         say("msg", "network अब भी नहीं मिल रहा — बाद में अपने-आप चली जाएँगी");
+    if(gaya && !a.length) say("msg", `✅ ${gaya} रुके हुए काम भेज दिए`, "ok");
+    else if(gaya)         say("msg", `${gaya} भेजे · ${a.length} अभी भी बाक़ी`, "ok");
+    else if(ruka)         say("msg", "network अब भी नहीं मिल रहा — बाद में अपने-आप चले जाएँगे");
     setTimeout(()=>say("msg",""), 3500);
-  } else if(gaya) redraw();
+  }
+  // नई lead चढ़ गई तो असली सूची मँगा लीजिए — फ़ोन वाली नक़ली पंक्ति हट जाएगी
+  if(nayiGayi) loadLeads(); else if(gaya) redraw();
 }
 window.addEventListener("online", () => qBhejo(false));
 
@@ -1728,7 +1762,12 @@ $("v_pfile").addEventListener("change", async e => {
     try{
       const nayi = await photoChadhao(f, kind);
       asli += f.size; bachaya += nayi; done++;
-    }catch(err){ say("v_pmsg", `${done} चढ़ीं · रुक गया — ${err.message}`); break; }
+    }catch(err){
+      say("v_pmsg", networkWaali(err)
+        ? `${done} चढ़ीं · 📴 network नहीं है — फ़ोटो बिना network नहीं चढ़तीं। `
+          + `नाप-जोख सहेजी जा चुकी है; network आने पर यहीं से फ़ोटो जोड़ दीजिए`
+        : `${done} चढ़ीं · रुक गया — ${err.message}`);
+      break; }
   }
   $("v_plabel").style.pointerEvents = "";
   if(done) say("v_pmsg",
@@ -1853,7 +1892,25 @@ $("v_save").onclick = async () => {
       $("visitbox").hidden = true; VISIT = null;
       say("p_msg","Site visit Save हो गई","ok"); setTimeout(()=>say("p_msg",""),2500);
     }
-  }catch(e){ say("v_msg","Save नहीं हुई — "+e.message); }
+  }catch(e){
+    if(networkWaali(e)){
+      // छत पर network नहीं मिला — पूरी नाप-जोख फ़ोन में रख लीजिए
+      const reqs = [{ path: VISIT ? `/rest/v1/site_visits?id=eq.${VISIT.id}` : "/rest/v1/site_visits",
+                      method: VISIT ? "PATCH" : "POST", body }];
+      if(!VISIT && ["new","no_answer","contacted","visit_scheduled"].includes(VISIT_LEAD.stage)){
+        const upd = { stage:"visit_done", stage_changed_on: today() };
+        if(body.estimated_kw && !VISIT_LEAD.kw_required) upd.kw_required = body.estimated_kw;
+        reqs.push({ path:`/rest/v1/leads?id=eq.${VISIT_LEAD.id}`, method:"PATCH", body: upd });
+        Object.assign(VISIT_LEAD, upd);
+      }
+      qAdd({ at: Date.now(), kind:"visit", naam: VISIT_LEAD.name || "", reqs });
+      cacheSave();
+      $("visitbox").hidden = true; VISIT = null; redraw();
+      say("p_msg","📴 Site visit फ़ोन में सहेज ली — network आते ही चढ़ जाएगी। "
+                + "📷 फ़ोटो के लिए network चाहिए, वे बाद में जोड़िए","ok");
+      setTimeout(()=>say("p_msg",""),5000);
+    } else say("v_msg","Save नहीं हुई — "+e.message);
+  }
   finally{ $("v_save").disabled=false; $("v_save").textContent="Save कीजिए"; }
 };
 
@@ -1969,12 +2026,17 @@ async function markNotCustomer(){
 }
 
 async function changeStage(id,stage){
+  const l = LEADS.find(x=>x.id===id);
+  if(l && l.__ruka) return say("msg","यह lead अभी भेजी नहीं गई — पहले 📴 वाली पट्टी दबाइए");
   try{
-    await apiRetry(`/rest/v1/leads?id=eq.${id}`,{method:"PATCH",
-      headers:{Prefer:"return=minimal"},body:JSON.stringify({stage})});
-    const l=LEADS.find(x=>x.id===id); if(l){ l.stage=stage; l.stage_changed_on=today(); }
+    const bheja = await bhejoYaRoko("stage", (l&&l.name)||"",
+      [{ path:`/rest/v1/leads?id=eq.${id}`, method:"PATCH", body:{ stage } }]);
+    if(l){ l.stage=stage; l.stage_changed_on=today(); }
+    cacheSave();
     redraw();                       // ताकि "नहीं हिली" वाला निशान तुरंत हट जाए
-    say("msg",`Stage बदल गया — ${S[stage]}`,"ok"); setTimeout(()=>say("msg",""),2500);
+    say("msg", bheja ? `Stage बदल गया — ${S[stage]}`
+                     : `📴 Stage सहेज लिया — network आते ही चढ़ जाएगा`, "ok");
+    setTimeout(()=>say("msg",""),2500);
   }catch(e){ say("msg","Stage नहीं बदला — "+e.message); loadLeads(); }
 }
 ["q","f_stage","f_bill","f_int","f_camp","f_nodate","f_show_nc","f_today","f_stale","f_assign"]
@@ -2004,16 +2066,28 @@ $("f_save").onclick = async () => {
   body.next_action_on = today();
   Object.keys(body).forEach(k=>body[k]===null&&delete body[k]);
   $("f_save").disabled=true; $("f_save").textContent="Save हो रहा है…";
+  const saaf = () => { $("form").hidden=true;
+    ["f_name","f_phone","f_village","f_district","f_bill_amt","f_kw","f_notes","f_campaign"]
+      .forEach(i=>$(i).value=""); };
   try{
     const out=await apiRetry("/rest/v1/leads",{method:"POST",
       headers:{Prefer:"return=representation"},body:JSON.stringify(body)});
     LEADS.unshift(Array.isArray(out)?out[0]:out);
-    $("form").hidden=true;
-    ["f_name","f_phone","f_village","f_district","f_bill_amt","f_kw","f_notes","f_campaign"].forEach(i=>$(i).value="");
+    saaf(); cacheSave();
     redraw(); say("msg",`${name} जुड़ गए`,"ok"); setTimeout(()=>say("msg",""),2500);
   }catch(e){
-    say("f_msg", /duplicate|unique/i.test(e.message)
-      ? "यह phone पहले से किसी lead पर है" : "Save नहीं हुआ — "+e.message);
+    if(networkWaali(e)){
+      // network नहीं है — lead फ़ोन में रख लीजिए और सूची में दिखा दीजिए
+      qAdd({ at: Date.now(), kind:"nayi", naam:name,
+             reqs:[{ path:"/rest/v1/leads", method:"POST", body }] });
+      LEADS.unshift(Object.assign({ id:"ruki-"+Date.now(), __ruka:true }, body));
+      saaf(); cacheSave(); redraw();
+      say("msg", `📴 ${name} फ़ोन में सहेज लिए — network आते ही चढ़ जाएँगे`, "ok");
+      setTimeout(()=>say("msg",""),3500);
+    } else {
+      say("f_msg", /duplicate|unique/i.test(e.message)
+        ? "यह phone पहले से किसी lead पर है" : "Save नहीं हुआ — "+e.message);
+    }
   }finally{ $("f_save").disabled=false; $("f_save").textContent="Save कीजिए"; }
 };
 
