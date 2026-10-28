@@ -32,7 +32,10 @@
   .hd h1{font-size:16px;margin:0;font-weight:700;flex:1;min-width:110px}
   .hd .sub{font-size:12px;color:#9ca3af;font-weight:400}
   .linkbtn{background:none;border:0;color:#d1d5db;font-size:13px;text-decoration:underline;padding:4px}
-  .tabs{max-width:900px;margin:0 auto;padding:0 16px;display:flex;gap:4px}
+  /* tab अपनी पट्टी के अंदर ही खिसकें — वरना पूरा पन्ना चौड़ा होकर बाहर निकल जाता है */
+  .tabs{max-width:900px;margin:0 auto;padding:0 16px;display:flex;gap:4px;
+    overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .tabs::-webkit-scrollbar{display:none}
   .tab{background:none;border:0;color:#9ca3af;padding:10px 14px;font-size:14px;font-weight:600;
     border-bottom:3px solid transparent;white-space:nowrap}
   .tab[aria-selected="true"]{color:#fff;border-bottom-color:var(--brand)}
@@ -181,10 +184,14 @@
                     padding:4px 10px;font-size:13px;color:#9a3412}
 
   .strip{background:#15181d;color:#fff;border-radius:var(--radius);padding:14px 16px;margin-bottom:14px;
-    display:flex;gap:20px;flex-wrap:wrap}
-  .strip div{min-width:120px}
-  .strip .k{font-size:12px;color:#9ca3af}
+    display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  .strip div{min-width:0}
+  .strip .k{font-size:11px;color:#9ca3af;line-height:1.35}
   .strip .v{font-size:20px;font-weight:700;margin-top:2px}
+  @media(max-width:560px){
+    .strip{grid-template-columns:repeat(3,1fr);gap:10px;padding:12px 14px}
+    .strip .v{font-size:18px}
+  }
 
   .empty{text-align:center;color:var(--muted);padding:40px 16px}
   .msg{padding:10px 12px;border-radius:10px;font-size:14px;margin:10px 0}
@@ -822,6 +829,9 @@ function setTab(t){
     $("v_"+k).hidden = t!==k;
   });
   $("b_new").hidden = t!=="leads";
+  /* चुना हुआ tab पट्टी में छिपा न रह जाए — उसे सामने खिसका दीजिए */
+  try{ $("t_"+t).scrollIntoView({ inline:"center", block:"nearest", behavior:"smooth" }); }
+  catch(e){ /* सजावट की बात है, रुकने की नहीं */ }
   redraw();
 }
 $("t_leads").onclick = () => setTab("leads");
@@ -874,7 +884,8 @@ async function whoAmI(){
   if(staffMode) $("f_hint").textContent =
     "नाम, phone और “कहाँ से आई” ज़रूरी हैं। यह lead अपने-आप आपके नाम हो जाएगी।";
   $("t_stuck").hidden = staffMode;
-  $("t_work").hidden  = staffMode;   // हिसाब सिर्फ़ मालिक देखें
+  $("t_work").hidden  = false;       // अब अपना हिसाब staff भी देखे — पर सिर्फ़ अपना
+  $("t_work").textContent = staffMode ? "📊 मेरा काम" : "📊 काम का हिसाब";
   $("w_shownc").hidden= staffMode;
   $("w_cnc").hidden   = staffMode;
   $("f_assign").hidden= !isMalik();
@@ -1258,19 +1269,23 @@ let WLINE = null;                      // एक पंक्ति का स�
 /* हिसाब को सादे शब्दों में बदलिए, ताकि WhatsApp पर भेजा जा सके */
 function workText(){
   if(!WLINE) return "";
-  const L = ["📊 Sunn Square — काम का हिसाब", WLINE.kabSe, ""];
-  if(!WLINE.log.length) L.push("किसी ने कोई call नहीं चढ़ाई।");
+  const akela = ME.role === "staff";
+  const L = [akela ? "📊 मेरा काम — Sunn Square" : "📊 Sunn Square — काम का हिसाब",
+             WLINE.kabSe, ""];
+  if(!WLINE.log.length) L.push(akela ? "अभी तक कोई call नहीं चढ़ी।"
+                                     : "किसी ने कोई call नहीं चढ़ाई।");
   WLINE.log.forEach(r => {
     L.push(`${r.name}`);
     L.push(`  calls ${r.calls} · बात ${r.done} · गरम ${r.hot}`
          + (r.visits ? ` · visits ${r.visits}` : "")
          + (r.made ? ` · नई leads ${r.made}` : ""));
     if((r.untouched||[]).length)
-      L.push(`  सौंपी ${r.assigned} में से ${r.untouched.length} छुई नहीं`);
+      L.push(akela ? `  ${r.assigned} में से ${r.untouched.length} अभी बाक़ी`
+                   : `  सौंपी ${r.assigned} में से ${r.untouched.length} छुई नहीं`);
     L.push("");
   });
   const T = WLINE.T;
-  L.push(`कुल — calls ${T.calls} · बात ${T.done} · गरम ${T.hot}`
+  L.push(`${akela?"मेरा कुल":"कुल"} — calls ${T.calls} · बात ${T.done} · गरम ${T.hot}`
        + (T.visits ? ` · visits ${T.visits}` : ""));
   return L.join("\n");
 }
@@ -1348,6 +1363,11 @@ function renderWork(){
     row(nm).made++;
   });
 
+  /* staff अपना ही काम देखे — किसी और का नाम यहीं हटा दीजिए।
+     दूसरों की calls उसकी सौंपी leads पर भी हो सकती हैं, इसलिए यह छननी ज़रूरी है। */
+  const akela = ME.role === "staff";
+  if(akela) [...people.keys()].forEach(k => { if(k !== ME.name) people.delete(k); });
+
   const all = [...people.values()].sort((a,b)=> b.calls - a.calls);
   const T = all.reduce((s,r)=>({ calls:s.calls+r.calls, done:s.done+r.done,
     hot:s.hot+r.hot, visits:s.visits+r.visits, made:s.made+r.made }),
@@ -1357,19 +1377,22 @@ function renderWork(){
 
   /* एक पंक्ति का सार — पाँच सेकंड में पूरी तस्वीर */
   WLINE = { kabSe, log: all.filter(r => r.calls || r.visits || r.made), T };
-  const ek = r => `<b>${esc(r.name)}</b> — ${r.calls} calls · ${r.done} बात`
+  const ek = r => (akela ? "" : `<b>${esc(r.name)}</b> — `)
+    + `${r.calls} calls · ${r.done} बात`
     + (r.hot ? ` · 🔥 ${r.hot} गरम` : "")
     + (r.visits ? ` · 🏠 ${r.visits}` : "")
-    + ((r.untouched||[]).length ? ` · <span class="zero">${r.untouched.length} leads छुई नहीं</span>` : "");
-  const chup = all.filter(r => !r.calls && !r.visits && !r.made).map(r => r.name);
+    + ((r.untouched||[]).length ? ` · <span class="zero">${r.untouched.length} leads बाक़ी</span>` : "");
+  const chup = akela ? [] : all.filter(r => !r.calls && !r.visits && !r.made).map(r => r.name);
   $("w_line").hidden = false;
   $("w_line").innerHTML = WLINE.log.length
     ? `${esc(kabSe)} —<br>${WLINE.log.map(ek).join("<br>")}`
       + (chup.length ? `<br><span class="zero">⚠️ ${esc(chup.join(", "))} — कुछ नहीं किया</span>` : "")
-    : `<span class="zero">${esc(kabSe)} — किसी ने कोई call नहीं चढ़ाई</span>`;
+    : akela
+      ? `<b>${esc(kabSe)}</b> — अभी तक कोई call नहीं चढ़ी। नीचे वाली leads से शुरू कीजिए 💪`
+      : `<span class="zero">${esc(kabSe)} — किसी ने कोई call नहीं चढ़ाई</span>`;
 
   $("strip4").innerHTML =
-    `<div><div class="k">${esc(kabSe)} — कुल calls</div><div class="v">${T.calls}</div></div>
+    `<div><div class="k">${esc(kabSe)} — ${akela?"मेरी calls":"कुल calls"}</div><div class="v">${T.calls}</div></div>
      <div><div class="k">बात हुई</div><div class="v">${T.done}</div></div>
      <div><div class="k">🔥 गरम निकलीं</div><div class="v">${T.hot}</div></div>
      <div><div class="k">🏠 Site visits</div><div class="v">${T.visits}</div></div>
@@ -1380,7 +1403,8 @@ function renderWork(){
   LEADS.forEach(l => { if(l.stage === "lost" && l.lost_reason)
     kyon.set(l.lost_reason, (kyon.get(l.lost_reason)||0) + 1); });
   const bina = LEADS.filter(l => l.stage === "lost" && !l.lost_reason).length;
-  if(kyon.size || bina){
+  if(akela){ $("w_lost").hidden = true; }     // यह धंधे की बात है — staff को नहीं दिखती
+  else if(kyon.size || bina){
     const kram = [...kyon.entries()].sort((a,b) => b[1]-a[1]);
     $("w_lost").hidden = false;
     $("w_lost").innerHTML = `<b>✖ सौदे क्यों नहीं हुए</b> <span class="sub2">(अब तक की सारी leads)</span><br>`
@@ -1395,7 +1419,7 @@ function renderWork(){
     const pct = r.assigned ? Math.round((r.assigned - (r.untouched||[]).length) * 100 / r.assigned) : null;
     return `<div class="wcard ${kuchNahi?"zero":""}">
       <h4>${esc(r.name)}</h4>
-      <div class="who">${kuchNahi ? "⚠️ इस अवधि में कुछ नहीं हुआ"
+      <div class="who">${kuchNahi ? (akela ? "अभी शुरुआत बाक़ी है" : "⚠️ इस अवधि में कुछ नहीं हुआ")
         : `${r.leads.size} अलग-अलग ग्राहकों से बात की कोशिश`}</div>
       <div class="nums">
         <div class="num"><div class="n">${r.calls}</div><div class="t">calls चढ़ीं</div></div>
@@ -1405,7 +1429,9 @@ function renderWork(){
         <div class="num ${r.made?"good":""}"><div class="n">${r.made}</div><div class="t">🆕 नई leads</div></div>
       </div>
       ${r.assigned ? `<div class="untouched">
-        <b>सौंपी गई ${r.assigned} leads में से ${(r.untouched||[]).length} को इस अवधि में छुआ तक नहीं
+        <b>${akela
+            ? `आपकी ${r.assigned} leads में से ${(r.untouched||[]).length} अभी बाक़ी हैं`
+            : `सौंपी गई ${r.assigned} leads में से ${(r.untouched||[]).length} को इस अवधि में छुआ तक नहीं`}
           ${pct !== null ? ` · ${pct}% हुआ` : ""}</b>
         ${(r.untouched||[]).length ? `<div class="names">${
           r.untouched.slice(0,12).map(l=>
