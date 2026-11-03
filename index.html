@@ -63,11 +63,11 @@
   .chip.money{background:#dcfce7;color:#14532d;font-weight:600}
   .chip.nc{background:#e5e7eb;color:#4b5563}
   .lead.nc{opacity:.62}
-  /* tick वाला डिब्बा input की 100% चौड़ाई ले लेता था — लिखावट दाईं तरफ़ धकेल जाती थी */
-  .chk input{flex:none;width:18px;height:18px;padding:0;margin:0;accent-color:var(--brand)}
   .chk{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);
        background:#f8f9fa;border:1px solid #e5e7eb;border-radius:10px;padding:9px 12px;cursor:pointer}
-  .chk input{width:18px;height:18px;margin:0;accent-color:#f59e0b}
+  /* .tools input का min-width:160px यहाँ भी लग जाता था — डिब्बा चौड़ा होकर
+     लिखावट को दाईं तरफ़ धकेल देता था। flex:none + min-width:0 उसे रोकता है। */
+  .chk input{flex:none;width:18px;height:18px;min-width:0;padding:0;margin:0;accent-color:#f59e0b}
   label.chk.nc{margin:0 0 12px;color:#92400e;background:#fffbeb;border-color:#fde68a}
   .lead select{width:auto;flex:1;min-width:150px;padding:7px 10px;font-size:13px}
   .chip.mine{background:#dbeafe;color:#1e3a8a;font-weight:600}
@@ -113,6 +113,17 @@
   .alarm{display:block;width:100%;text-align:left;background:#fffbeb;border:1px solid #fcd34d;
     border-left:5px solid #f59e0b;border-radius:var(--radius);padding:12px 14px;margin:0 0 12px;
     font-size:15px;font-weight:600;color:#92400e}
+  /* आज आई नई leads — नीली पट्टी, ताकि भूली हुई वाली पीली से अलग दिखे */
+  .alarm.naya{background:#eff6ff;border-color:#93c5fd;border-left-color:#2563eb;color:#1e3a8a}
+  .chip.naya{background:#dbeafe;color:#1e40af;border-color:#93c5fd;font-weight:700}
+  /* एक ही नंबर दो बार — बैंगनी, ताकि नीली और पीली दोनों से अलग दिखे */
+  .alarm.dup{background:#faf5ff;border-color:#d8b4fe;border-left-color:#7e22ce;color:#581c87}
+  .chip.dup{background:#f3e8ff;color:#6b21a8;border-color:#d8b4fe;font-weight:700}
+  .dupwarn{background:#faf5ff;border:1px solid #d8b4fe;border-left:4px solid #7e22ce;
+    border-radius:10px;padding:10px 12px;margin:6px 0 2px;font-size:14px;color:#581c87}
+  .dupwarn small{display:block;margin-top:6px;font-size:12px;color:#7e4ba8;font-weight:400}
+  .dupb{background:#fff;border:1px solid #d8b4fe;color:#6b21a8;border-radius:999px;
+    padding:6px 12px;font-size:13px;font-weight:700;margin:4px 4px 0 0}
   .alarm:hover{background:#fef3c7}
   .alarm.on{background:#15181d;border-color:#15181d;color:#fff}
   .alarm.hot{background:#fef2f2;border-color:#fca5a5;border-left-color:#dc2626;color:#991b1b}
@@ -278,6 +289,8 @@
         </select>
         <select id="f_camp" hidden></select>
         <select id="f_assign" hidden></select>
+        <label class="chk"><input type="checkbox" id="f_naya"> 🆕 आज आईं</label>
+        <label class="chk" id="w_dohri" hidden><input type="checkbox" id="f_dohri"> 🔁 दोहरी leads</label>
         <label class="chk"><input type="checkbox" id="f_today"> सिर्फ़ आज वाली</label>
         <label class="chk"><input type="checkbox" id="f_nodate"> 📅 बिना अगली तारीख़</label>
         <label class="chk" id="w_stale"><input type="checkbox" id="f_stale"> 🕐 सिर्फ़ भूली हुई</label>
@@ -285,6 +298,8 @@
       </div>
       <button class="alarm" id="qbar" hidden></button>
       <button class="alarm hot" id="hotbar" hidden></button>
+      <button class="alarm naya" id="nayabar" hidden></button>
+      <button class="alarm dup" id="dupbar" hidden></button>
       <button class="alarm" id="alarmbar" hidden></button>
       <div class="count" id="count"></div>
       <div class="bar" id="allbar" hidden>
@@ -616,6 +631,7 @@
     <p class="hint" id="f_hint">नाम और phone ज़रूरी हैं। बाक़ी बाद में भी भर सकते हैं।</p>
     <label>नाम *</label><input id="f_name">
     <label>Phone *</label><input id="f_phone" inputmode="tel" placeholder="9876543210">
+    <div id="f_dup"></div>
     <div class="grid2">
       <div><label>गाँव / मोहल्ला</label><input id="f_village"></div>
       <div><label>ज़िला</label><input id="f_district"></div>
@@ -651,7 +667,7 @@
 /* ===== नक़ल का नंबर =====
    हर बार कुछ बदले तो यह भी बदलता है। ऊपर पट्टी पर दिखता है,
    ताकि एक नज़र में पता चले कि फ़ोन में नई नक़ल चल रही है या पुरानी।   */
-const VER = "2026-10-28.3";
+const VER = "2026-10-29.1";
 
 const DEF_URL = "https://ddjwszlijepejulcjmsx.supabase.co";
 const DEF_KEY = "sb_publishable_yqLA_8lAwOltbnq0rI_nyA_dhY7N2Qz";
@@ -706,6 +722,28 @@ function sleptDays(l){                       // कितने दिन से
   const d = dayNum(today()) - dayNum(l.stage_changed_on);
   return isNaN(d) ? null : d;
 }
+/* यह lead आज ही आई है? — ad की lead मिनटों में call माँगती है */
+function aajAayi(l, td){
+  if(l.not_a_customer) return false;
+  if(l.created_on) return l.created_on === td;
+  if(l.created_at) return new Date(l.created_at).toLocaleDateString("en-CA") === td;
+  return false;
+}
+/* इस lead पर अभी तक हाथ नहीं लगा — stage वहीं खड़ा है जहाँ से शुरू हुई थी */
+const abhiKuchNahi = l => l.stage === "new";
+
+/* कितनी देर पहले आई — "अभी-अभी" से "3 घंटे पहले" तक */
+function kitniDer(ts){
+  if(!ts) return "";
+  const mi = Math.floor((Date.now() - new Date(ts).getTime()) / 60000);
+  if(!isFinite(mi) || mi < 0) return "";
+  if(mi < 1)  return "अभी-अभी";
+  if(mi < 60) return `${mi} मिनट पहले`;
+  const gh = Math.floor(mi / 60);
+  if(gh < 24) return `${gh} घंटे पहले`;
+  return `${Math.floor(gh / 24)} दिन पहले`;
+}
+
 function isStale(l, td){                     // यह lead भूली जा रही है?
   if(l.not_a_customer) return false;
   if(SETTLED.includes(l.stage)) return false;
@@ -926,7 +964,7 @@ const LIST_COLS = ["id","name","phone","stage","bill_band","bill_bracket","villa
   "interest","kw_required","next_action_on","assigned_uid","not_a_customer","stage_changed_on",
   "portal_app_no","portal_status","days_stuck","subsidy_eligible","bill_lost","applied_on",
   "system_kw","project_type","commissioned_on","installed_kw","amc_due_on","system_note",
-  "created_by","created_on"].join(",");
+  "created_by","created_on","created_at"].join(",");
 
 function cacheSave(){
   try{ store("ss_cache", JSON.stringify({ t: Date.now(), rows: LEADS })); }catch(e){}
@@ -989,6 +1027,46 @@ function render(){
   const itr = $("f_int").value, noDate = $("f_nodate").checked;
   const asg = isMalik() ? $("f_assign").value : "";
   const td = today();
+  let onlyNaya = $("f_naya").checked;
+
+  /* 🆕 आज आई leads — सबसे ऊपर, क्योंकि ये सबसे जल्दी ठंडी पड़ती हैं */
+  const naye = LEADS.filter(l => !l.__ruka && aajAayi(l, td));
+  const nayeKachche = naye.filter(abhiKuchNahi);
+  if(naye.length){
+    $("nayabar").hidden = false;
+    $("nayabar").classList.toggle("on", onlyNaya);
+    $("nayabar").innerHTML = onlyNaya
+      ? `✕ आज आई leads दिख रही हैं — सब वापस दिखाइए
+         <small>${naye.length} आईं · ${nayeKachche.length} पर अभी कुछ नहीं हुआ</small>`
+      : `🆕 आज ${naye.length} नई lead${naye.length>1?"s":""} आईं — देखिए
+         <small>${nayeKachche.length
+            ? `${nayeKachche.length} पर अभी तक कुछ नहीं हुआ · नई lead जितनी जल्दी call हो उतना अच्छा`
+            : "सब पर काम शुरू हो चुका है 👍"}</small>`;
+  } else {
+    $("nayabar").hidden = true;
+    if(onlyNaya){ $("f_naya").checked = false; onlyNaya = false; }
+  }
+
+  /* 🔁 एक ही नंबर पर दो या ज़्यादा leads */
+  let onlyDohri = $("f_dohri").checked;
+  const dohri = dohriSamuh();
+  const dohriIds = new Set();
+  const dohriKitne = new Map();                    // lead का id → उस नंबर पर कुल कितनी
+  dohri.forEach(g => g.leads.forEach(l => { dohriIds.add(l.id); dohriKitne.set(l.id, g.leads.length); }));
+  $("w_dohri").hidden = !dohri.length;
+  if(dohri.length){
+    const kul = dohri.reduce((s,g) => s + g.leads.length, 0);
+    $("dupbar").hidden = false;
+    $("dupbar").classList.toggle("on", onlyDohri);
+    $("dupbar").innerHTML = onlyDohri
+      ? `✕ दोहरी leads दिख रही हैं — सब वापस दिखाइए
+         <small>${dohri.length} नंबर · कुल ${kul} leads · एक ही नंबर वाली आस-पास रखी हैं</small>`
+      : `🔁 ${dohri.length} नंबर एक से ज़्यादा बार दर्ज हैं — देखिए
+         <small>कुल ${kul} leads · एक ही आदमी पर दो बार call लग सकती है</small>`;
+  } else {
+    $("dupbar").hidden = true;
+    if(onlyDohri){ $("f_dohri").checked = false; onlyDohri = false; }
+  }
 
   // 🕐 भूली हुई leads का अलार्म
   const stale = LEADS.filter(l => isStale(l, td));
@@ -1021,6 +1099,8 @@ function render(){
 
   const rows = LEADS.filter(l=>{
     if(l.not_a_customer && !showNC) return false;
+    if(onlyNaya && !aajAayi(l, td)) return false;
+    if(onlyDohri && !dohriIds.has(l.id)) return false;
     if(onlyStale && !isStale(l, td)) return false;
     if(onlyToday && !(l.next_action_on && l.next_action_on <= td)) return false;
     if(itr && (l.interest || "") !== itr) return false;
@@ -1033,13 +1113,17 @@ function render(){
     if(!q) return true;
     return [l.name,l.phone,l.village,l.district].some(v=>String(v||"").toLowerCase().includes(q));
   });
+  /* दोहरी देखनी हों तो एक ही नंबर वाली आस-पास रखिए — वरना मिलाना मुश्किल है */
+  if(onlyDohri) rows.sort((a,b) => tel10(a.phone).localeCompare(tel10(b.phone)));
   SHOWN = rows.filter(l=>!l.__ruka).map(l=>l.id);   // रुकी हुई leads सौंपी नहीं जा सकतीं
   const hid = LEADS.filter(l=>l.not_a_customer).length;
   $("count").textContent = `${rows.length} दिख रही हैं · कुल ${LEADS.length}`
     + (hid && !showNC ? ` · ${hid} अपने/test छिपे हैं` : "");
   if(!rows.length){
-    $("list").innerHTML = `<div class="empty">${onlyToday
-      ? "आज के लिए कोई call नहीं लगी है।" : "कोई lead नहीं मिली।"}</div>`;
+    $("list").innerHTML = `<div class="empty">${
+      onlyDohri ? "कोई नंबर दो बार दर्ज नहीं है।"
+      : onlyNaya ? "आज अभी तक कोई नई lead नहीं आई।"
+      : onlyToday ? "आज के लिए कोई call नहीं लगी है।" : "कोई lead नहीं मिली।"}</div>`;
     PICKED.clear(); selBar(); return;
   }
   const nameOf = u => (STAFF.find(s=>s.user_id===u)||{}).name || "staff";
@@ -1059,6 +1143,8 @@ function render(){
       ${isMalik()?`<input type="checkbox" class="pick" data-id="${l.id}" ${PICKED.has(l.id)?"checked":""}
         title="चुनिए — फिर staff को सौंपिए">`:""}</div>
       <div class="row2">
+        ${aajAayi(l, td)?`<span class="chip naya">🆕 ${esc(kitniDer(l.created_at)||"आज")}</span>`:""}
+        ${dohriKitne.has(l.id)?`<span class="chip dup">🔁 यह नंबर ${dohriKitne.get(l.id)} बार</span>`:""}
         ${slept!==null?`<span class="chip slept ${slept>30?"bad":""}">🕐 ${slept} दिन से नहीं हिली</span>`:""}
         ${l.assigned_uid&&isMalik()?`<span class="chip mine">👤 ${esc(nameOf(l.assigned_uid))}</span>`:""}
         ${l.not_a_customer?`<span class="chip nc">ग्राहक नहीं</span>`:""}
@@ -1123,6 +1209,23 @@ $("a_all").onclick = () => {
   else SHOWN.forEach(id => PICKED.add(id));
   render();
 };
+$("dupbar").onclick = () => {
+  const ab = !$("f_dohri").checked;
+  $("f_dohri").checked = ab;
+  if(ab){ $("f_naya").checked = false; $("f_today").checked = false;
+          $("f_stale").checked = false; $("f_nodate").checked = false; }
+  render();
+};
+$("f_dohri").addEventListener("change", render);
+$("nayabar").onclick = () => {
+  const ab = !$("f_naya").checked;
+  $("f_naya").checked = ab;
+  if(ab){                                   // दूसरी छननियाँ हटा दीजिए, वरना कुछ दिखेगा ही नहीं
+    $("f_today").checked = false; $("f_stale").checked = false; $("f_nodate").checked = false;
+  }
+  render();
+};
+$("f_naya").addEventListener("change", render);
 $("alarmbar").onclick = () => { $("f_stale").checked = !$("f_stale").checked; render(); };
 $("qbar").onclick = () => {
   const a = qLoad().map(x => { delete x.error; return x; });   // गड़बड़ वालों को दोबारा मौक़ा
@@ -1494,6 +1597,28 @@ function tel10(s){
   else if(d.length > 10) d = d.slice(-10);                    // और कोई उपसर्ग हो तब भी
   return d;
 }
+/* एक ही नंबर पर एक से ज़्यादा leads — जोड़े बनाकर लौटाइए।
+   ads में एक ही आदमी तीन-तीन बार form भर देता है, और फिर उसी पर तीन बार call लगती है. */
+function dohriSamuh(){
+  const m = new Map();
+  LEADS.forEach(l => {
+    if(l.__ruka || l.not_a_customer) return;
+    const t = tel10(l.phone);
+    if(t.length !== 10) return;                 // अधूरा नंबर जोड़ा नहीं माना जाएगा
+    if(!m.has(t)) m.set(t, []);
+    m.get(t).push(l);
+  });
+  return [...m.entries()].filter(([, a]) => a.length > 1)
+    .map(([tel, leads]) => ({ tel, leads }));
+}
+
+/* इसी नंबर पर पहले से कौन दर्ज है — नई lead भरते वक़्त काम आता है */
+function pehleSeKaun(phone, chhodoId){
+  const t = tel10(phone);
+  if(t.length !== 10) return [];
+  return LEADS.filter(l => !l.__ruka && l.id !== chhodoId && tel10(l.phone) === t);
+}
+
 /* फ़ोन लगाने के लिए — + ज़रूरी है, वरना फ़ोन 12 अंकों को देसी नंबर समझकर मना कर देता है */
 const telHref = s => { const d = tel10(s);
   return d.length === 10 ? "+91" + d : (digits(s) ? "+" + digits(s) : ""); };
@@ -2329,12 +2454,40 @@ async function changeStage(id,stage){
 ["q2","f_pstatus","f_fin"].forEach(i=>$(i).addEventListener("input",renderStuck));
 ["q3","f_ptype","f_amc"].forEach(i=>$(i).addEventListener("input",renderLive));
 
-$("b_new").onclick = () => { $("form").hidden=false; say("f_msg",""); $("f_name").focus(); };
+$("b_new").onclick = () => { $("form").hidden=false; say("f_msg","");
+  $("f_dup").innerHTML=""; DUPOK=false; $("f_save").textContent="Save कीजिए"; $("f_name").focus(); };
 $("f_cancel").onclick = () => $("form").hidden=true;
+/* नंबर भरते ही बता दीजिए कि वह पहले से दर्ज है या नहीं —
+   Save दबाने के बाद बताने से देर हो जाती है। */
+let DUPOK = false;                       // "फिर भी जोड़िए" दबाया जा चुका?
+function dupDikhao(){
+  const mil = pehleSeKaun($("f_phone").value);
+  if(!mil.length){ $("f_dup").innerHTML = ""; return []; }
+  $("f_dup").innerHTML = `<div class="dupwarn">🔁 यह नंबर पहले से दर्ज है —
+    ${mil.map(l => `<button type="button" class="dupb" data-id="${l.id}">${
+      esc(l.name||"बिना नाम")} · ${esc(S[l.stage]||l.stage||"")}</button>`).join(" ")}
+    <small>नाम पर दबाकर वही lead खोल लीजिए — नई बनाने की शायद ज़रूरत ही न हो</small></div>`;
+  document.querySelectorAll("#f_dup .dupb").forEach(b => b.onclick = () => {
+    $("form").hidden = true; $("f_dup").innerHTML = ""; openPanna(b.dataset.id);
+  });
+  return mil;
+}
+$("f_phone").addEventListener("input", () => {
+  DUPOK = false;
+  $("f_save").textContent = "Save कीजिए";
+  dupDikhao();
+});
+
 $("f_save").onclick = async () => {
   const name=$("f_name").value.trim(), phone=$("f_phone").value.trim();
   if(!name) return say("f_msg","नाम भरिए");
   if(!phone) return say("f_msg","Phone भरिए");
+  const pehle = dupDikhao();
+  if(pehle.length && !DUPOK){
+    DUPOK = true;
+    $("f_save").textContent = "फिर भी जोड़िए";
+    return say("f_msg","यह नंबर पहले से है — ऊपर देखिए। सचमुच नई lead बनानी हो तो दोबारा दबाइए");
+  }
   if(ME.role==="staff" && !$("f_source").value)
     return say("f_msg","“कहाँ से आई” चुनना ज़रूरी है — दुकान पर आए या किसी ने भेजा");
   const num=v=>{const n=parseFloat(String(v).replace(/[^\d.]/g,""));return isNaN(n)?null:n;};
@@ -2353,7 +2506,8 @@ $("f_save").onclick = async () => {
   $("f_save").disabled=true; $("f_save").textContent="Save हो रहा है…";
   const saaf = () => { $("form").hidden=true;
     ["f_name","f_phone","f_village","f_district","f_bill_amt","f_kw","f_notes","f_campaign"]
-      .forEach(i=>$(i).value=""); };
+      .forEach(i=>$(i).value="");
+    $("f_dup").innerHTML=""; DUPOK=false; };
   try{
     const out=await apiRetry("/rest/v1/leads",{method:"POST",
       headers:{Prefer:"return=representation"},body:JSON.stringify(body)});
