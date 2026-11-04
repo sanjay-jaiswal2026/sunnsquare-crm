@@ -119,6 +119,16 @@
   /* एक ही नंबर दो बार — बैंगनी, ताकि नीली और पीली दोनों से अलग दिखे */
   .alarm.dup{background:#faf5ff;border-color:#d8b4fe;border-left-color:#7e22ce;color:#581c87}
   .chip.dup{background:#f3e8ff;color:#6b21a8;border-color:#d8b4fe;font-weight:700}
+  /* form से आई पूछताछ — हरी, क्योंकि यह अच्छी ख़बर है */
+  .alarm.inbox{background:#ecfdf5;border-color:#6ee7b7;border-left-color:#059669;color:#065f46}
+  .ibc{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;
+    background:#fff;border-left:5px solid #059669}
+  .ibc h4{margin:0 0 2px;font-size:17px}
+  .ibc .m{font-size:13px;color:var(--muted);line-height:1.6}
+  .ibc .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .ibc .acts .btn{flex:1;min-width:140px;padding:10px 12px;font-size:14px}
+  .ibwarn{background:#faf5ff;border:1px solid #d8b4fe;border-left:4px solid #7e22ce;
+    border-radius:8px;padding:8px 10px;margin-top:8px;font-size:13px;color:#581c87;font-weight:600}
   .dupwarn{background:#faf5ff;border:1px solid #d8b4fe;border-left:4px solid #7e22ce;
     border-radius:10px;padding:10px 12px;margin:6px 0 2px;font-size:14px;color:#581c87}
   .dupwarn small{display:block;margin-top:6px;font-size:12px;color:#7e4ba8;font-weight:400}
@@ -297,6 +307,7 @@
         <label class="chk" id="w_shownc"><input type="checkbox" id="f_show_nc"> अपने / test वाले भी दिखाइए</label>
       </div>
       <button class="alarm" id="qbar" hidden></button>
+      <button class="alarm inbox" id="inboxbar" hidden></button>
       <button class="alarm hot" id="hotbar" hidden></button>
       <button class="alarm naya" id="nayabar" hidden></button>
       <button class="alarm dup" id="dupbar" hidden></button>
@@ -605,6 +616,21 @@
   </div>
 </div>
 
+<div id="inbox" class="ovl" hidden>
+  <div class="card big">
+    <h2>📥 नई पूछताछ <span class="sub" id="ib_count"></span></h2>
+    <p class="hint" style="margin:0 0 12px">
+      ये आपके form से आई हैं — अभी CRM की सूची में नहीं हैं।
+      "CRM में लीजिए" दबाते ही असली lead बन जाएगी और आज के काम में आ जाएगी।</p>
+    <div id="ib_list"></div>
+    <div id="ib_msg"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost btn" id="ib_refresh">↻ फिर देखिए</button>
+      <button class="btn" id="ib_close">बंद कीजिए</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast" class="toast"></div>
 
 <div id="callbox" class="ovl" hidden>
@@ -667,7 +693,7 @@
 /* ===== नक़ल का नंबर =====
    हर बार कुछ बदले तो यह भी बदलता है। ऊपर पट्टी पर दिखता है,
    ताकि एक नज़र में पता चले कि फ़ोन में नई नक़ल चल रही है या पुरानी।   */
-const VER = "2026-10-29.1";
+const VER = "2026-11-04.1";
 
 const DEF_URL = "https://ddjwszlijepejulcjmsx.supabase.co";
 const DEF_KEY = "sb_publishable_yqLA_8lAwOltbnq0rI_nyA_dhY7N2Qz";
@@ -911,6 +937,7 @@ async function start(){
   qBar();
   await whoAmI();
   await loadLeads();
+  loadInbox();                 // form से आई पूछताछ — चुपचाप, सूची को रोके बिना
   qBhejo(false);          // पिछली बार की रुकी हुई calls चुपचाप भेज दीजिए
 }
 
@@ -1573,6 +1600,141 @@ $("lb_save").onclick = () => {
     return say("lb_msg","\"और\" चुना है तो नीचे लिखिए कि क्या वजह थी — वरना बाद में पता नहीं चलेगा");
   bandKyon({ lost_reason: r, lost_note: n || null });
 };
+
+
+/* ============================================================
+   📥 form से आई पूछताछ — lead_inbox
+   बिना login कोई इस डिब्बे में डाल सकता है, पढ़ सिर्फ़ मालिक सकता है।
+   यहाँ से एक दबाव में वह असली lead बन जाती है।
+   ============================================================ */
+let INBOX = [];
+
+async function loadInbox(){
+  if(!isMalik()){ INBOX = []; inboxBar(); return; }
+  try{
+    INBOX = await apiRetry("/rest/v1/lead_inbox?status=eq.nayi"
+      + "&select=id,created_at,name,phone,village,district,monthly_bill,note,source,campaign"
+      + "&order=created_at.desc&limit=200") || [];
+  }catch(e){ /* डिब्बा न हो या network न हो — CRM रुकना नहीं चाहिए */ }
+  inboxBar();
+}
+
+function inboxBar(){
+  const n = INBOX.length;
+  $("inboxbar").hidden = !(isMalik() && n);
+  if(!n) return;
+  const p = INBOX[0];
+  $("inboxbar").innerHTML = `📥 ${n} नई पूछताछ आई — देखिए
+    <small>${esc(p.name||"बिना नाम")} · ${esc(kitniDer(p.created_at)||"")}`
+    + (n > 1 ? ` · और ${n-1}` : "") + `</small>`;
+}
+
+function openInbox(){
+  $("ib_count").textContent = INBOX.length ? `— ${INBOX.length}` : "";
+  say("ib_msg","");
+  $("ib_list").innerHTML = !INBOX.length
+    ? `<div class="empty">अभी कोई नई पूछताछ नहीं है।</div>`
+    : INBOX.map(r => {
+        const pehle = pehleSeKaun(r.phone);
+        const jagah = [r.village, r.district].filter(Boolean).join(", ");
+        return `<div class="ibc">
+          <h4>${esc(r.name||"बिना नाम")}</h4>
+          <div class="m">
+            <a class="tel" href="tel:${telHref(r.phone)}">${esc(r.phone||"")}</a>
+            ${jagah ? " · " + esc(jagah) : ""}
+            ${r.monthly_bill ? ` · बिल ₹${esc(r.monthly_bill)}` : ""}<br>
+            🕐 ${esc(kitniDer(r.created_at) || "")}
+            ${r.campaign ? ` · 🎯 ${esc(r.campaign)}` : ""}
+            ${r.source && r.source !== "website" ? ` · ${esc(r.source)}` : ""}
+            ${r.note ? `<br>📝 ${esc(r.note)}` : ""}
+          </div>
+          ${pehle.length ? `<div class="ibwarn">🔁 यह नंबर CRM में पहले से है —
+             ${pehle.map(l => esc(l.name||"बिना नाम") + " · " + esc(S[l.stage]||l.stage||"")).join(" · ")}
+             <br>नई lead बनाने से पहले सोच लीजिए</div>` : ""}
+          <div class="acts">
+            <button class="btn ib_lo" data-id="${r.id}">✅ CRM में लीजिए</button>
+            <button class="btn-ghost btn ib_kooda" data-id="${r.id}">🗑️ कूड़ा है</button>
+          </div>
+        </div>`;
+      }).join("");
+  document.querySelectorAll(".ib_lo").forEach(b => b.onclick = () => inboxLo(b.dataset.id));
+  document.querySelectorAll(".ib_kooda").forEach(b => b.onclick = () => inboxKooda(b.dataset.id));
+  $("inbox").hidden = false;
+}
+
+/* पूछताछ → असली lead */
+async function inboxLo(id){
+  const r = INBOX.find(x => x.id === id);
+  if(!r) return;
+  /* source database में enum है — उसमें तय शब्द ही जा सकते हैं।
+     form से कुछ और आया हो तो उसे campaign में रख लीजिए, खोइए मत। */
+  const jaanaPehchana = SOURCES.some(([v]) => v === r.source);
+  const body = {
+    name: r.name, phone: r.phone,
+    village: r.village || null, district: r.district || null,
+    monthly_bill: (r.monthly_bill === null || r.monthly_bill === undefined) ? null : r.monthly_bill,
+    source: jaanaPehchana ? r.source : "website",
+    campaign: r.campaign || (jaanaPehchana ? null : r.source) || null,
+    notes: r.note || null,
+    stage: "new",
+    next_action_on: today()
+  };
+  Object.keys(body).forEach(k => body[k] === null && delete body[k]);
+
+  say("ib_msg","");
+  const btn = document.querySelector(`.ib_lo[data-id="${id}"]`);
+  if(btn){ btn.disabled = true; btn.textContent = "लिया जा रहा है…"; }
+  try{
+    const out = await apiRetry("/rest/v1/leads", { method:"POST",
+      headers:{ Prefer:"return=representation" }, body: JSON.stringify(body) });
+    const nayi = Array.isArray(out) ? out[0] : out;
+    await apiRetry(`/rest/v1/lead_inbox?id=eq.${id}`, { method:"PATCH",
+      headers:{ Prefer:"return=minimal" },
+      body: JSON.stringify({ status:"liya", lead_id: nayi.id,
+                             handled_at: new Date().toISOString(), handled_by: ME.uid }) });
+    LEADS.unshift(nayi);
+    INBOX = INBOX.filter(x => x.id !== id);
+    cacheSave(); redraw(); inboxBar(); openInbox();   // पट्टी की गिनती भी घटनी चाहिए
+    toast(`${r.name} CRM में आ गए — आज के काम में हैं`, "ok");
+  }catch(e){
+    if(btn){ btn.disabled = false; btn.textContent = "✅ CRM में लीजिए"; }
+    say("ib_msg", /duplicate|unique/i.test(e.message)
+      ? "यह phone पहले से किसी lead पर है — पुरानी lead खोलकर उसी में जोड़िए"
+      : "नहीं लिया जा सका — " + e.message);
+  }
+}
+
+async function inboxKooda(id){
+  const r = INBOX.find(x => x.id === id);
+  if(!r) return;
+  if(!confirm(`"${r.name}" को कूड़ा मान लें?\n\nयह CRM में नहीं आएगी। मिटेगी नहीं — डिब्बे में पड़ी रहेगी।`)) return;
+  const btn = document.querySelector(`.ib_kooda[data-id="${id}"]`);
+  if(btn) btn.disabled = true;
+  try{
+    await apiRetry(`/rest/v1/lead_inbox?id=eq.${id}`, { method:"PATCH",
+      headers:{ Prefer:"return=minimal" },
+      body: JSON.stringify({ status:"kooda",
+                             handled_at: new Date().toISOString(), handled_by: ME.uid }) });
+    INBOX = INBOX.filter(x => x.id !== id);
+    inboxBar(); openInbox();
+    toast("कूड़े में डाल दी", "ok");
+  }catch(e){
+    if(btn) btn.disabled = false;
+    say("ib_msg", "नहीं हो सका — " + e.message);
+  }
+}
+
+$("inboxbar").onclick = openInbox;
+$("ib_close").onclick = () => { $("inbox").hidden = true; };
+$("ib_refresh").onclick = async () => { await loadInbox(); openInbox(); };
+
+/* हर 2 मिनट में चुपचाप देख लीजिए — ad की lead मिनटों में call माँगती है।
+   पन्ना सामने न हो तो कुछ नहीं माँगा जाता, ताकि data बेकार न जाए। */
+setInterval(() => {
+  if(document.hidden || !navigator.onLine || !isMalik()) return;
+  if(!$("inbox").hidden) return;              // खिड़की खुली हो तो बीच में न छेड़िए
+  loadInbox();
+}, 120000);
 
 $("w_refresh").onclick = loadWork;
 $("f_when").addEventListener("input", loadWork);
